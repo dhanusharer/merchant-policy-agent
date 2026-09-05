@@ -1,0 +1,33 @@
+# Environment & Local Secrets
+.env
+*.env.local
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node & Next.js
+apps/web/node_modules/
+apps/web/.next/
+apps/web/out/
+apps/web/test-results/
+apps/web/playwright-report/
+
+# Databases & Scratch
+test.db
+test.db-journal
+scratch/
+.system_generated/
+
+# OS Specific
+.DS_Store
+Thumbs.db

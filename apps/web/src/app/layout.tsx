@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { MerchantProvider } from '@/lib/MerchantContext';
 import { AppShell } from '@/components/layout/AppShell';
@@ -19,6 +20,7 @@ export default function RootLayout({
         <MerchantProvider>
           <AppShell>{children}</AppShell>
         </MerchantProvider>
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       </body>
     </html>
   );

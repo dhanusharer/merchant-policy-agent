@@ -120,6 +120,8 @@ export interface DecisionDetail {
   authorization_id?: string | null;
   execution_id?: string | null;
   order_id?: string | null;
+  razorpay_order_id?: string | null;
+  authorized_amount_paise?: number | null;
   payment_id?: string | null;
   outcome_id?: string | null;
   evidence_id?: string | null;

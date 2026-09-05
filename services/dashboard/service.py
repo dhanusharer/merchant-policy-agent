@@ -393,12 +393,18 @@ class DecisionViewService:
         order_id = exec_rec.order_id if exec_rec else None
         pay_id = out_rec.razorpay_payment_id if out_rec else None
 
+        razorpay_order_id = exec_rec.razorpay_order_id if exec_rec else None
+        if not razorpay_order_id and order_id:
+            ord_stmt = select(Order.razorpay_order_id).where(Order.id == order_id)
+            razorpay_order_id = (await db.execute(ord_stmt)).scalar_one_or_none()
+        auth_amount_paise = exec_rec.authorized_amount_paise if exec_rec else None
+
         # 3. Build Strict Buyer-Facing View (ZERO COGS/margin)
         buyer_offer_raw = envelope_data.get("buyer_offer", {})
         buyer_offer = DecisionBuyerOfferViewDTO(
             offer_title=buyer_offer_raw.get("offer_title", "Commercial Policy Offer"),
             product_ids=buyer_offer_raw.get("product_ids", []),
-            offer_price_paise=buyer_offer_raw.get("offer_price_paise", dec_rec.proposed_price_paise),
+            offer_price_paise=buyer_offer_raw.get("offer_price_paise") or buyer_offer_raw.get("offered_price_paise") or dec_rec.proposed_price_paise,
             currency=buyer_offer_raw.get("currency", "INR"),
             strategy_type=buyer_offer_raw.get("strategy_type", dec_rec.selected_strategy_type),
             warranty_months=buyer_offer_raw.get("warranty_months", 12),
@@ -461,6 +467,8 @@ class DecisionViewService:
             authorization_id=exec_rec.authorization_id if exec_rec else None,
             execution_id=exec_rec.id if exec_rec else None,
             order_id=order_id,
+            razorpay_order_id=razorpay_order_id,
+            authorized_amount_paise=auth_amount_paise,
             payment_id=pay_id,
             outcome_id=out_rec.id if out_rec else None,
             evidence_id=out_rec.evidence_id if out_rec else None,

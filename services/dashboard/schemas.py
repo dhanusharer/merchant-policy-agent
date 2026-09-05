@@ -179,6 +179,8 @@ class DecisionDetailDTO(BaseModel):
     authorization_id: Optional[str] = None
     execution_id: Optional[str] = None
     order_id: Optional[str] = None
+    razorpay_order_id: Optional[str] = None
+    authorized_amount_paise: Optional[int] = None
     payment_id: Optional[str] = None
     outcome_id: Optional[str] = None
     evidence_id: Optional[str] = None

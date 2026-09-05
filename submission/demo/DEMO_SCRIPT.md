@@ -1,63 +1,112 @@
 # Demo Presentation Script & Speaking Flow
 
 > **Razorpay AI Buildathon 2026 — Track 01: AI Growth & Agentic Commerce**  
-> **Format**: 3-Minute Video Walkthrough + Technical Depth Addendum
+> **Format**: 5-Minute Video Walkthrough + Technical Depth Addendum  
+> 🎥 **Official Submission Video Recording**:  
+> **[Watch the Demo Video on Google Drive](https://drive.google.com/drive/folders/1t1ntVPLLywJ2RIn9y9WB9vKAlRPnbtA1?usp=drive_link)**  
+> *Google Drive Folder Link*: `https://drive.google.com/drive/folders/1t1ntVPLLywJ2RIn9y9WB9vKAlRPnbtA1?usp=drive_link`
 
 ---
 
-## 3-Minute Video Script
+## 5-Minute Spoken Presentation Script
 
-### Segment 1: The Problem (0:00 – 0:25)
+### ACT 1 — THE TENSION (0:00 – 0:25)
 - **Visual**: Show traditional web storefront vs. a terminal/API interface showing programmatic AI buyer queries.
 - **Narrator**:
-  > "Commerce is undergoing a fundamental shift: AI agents are increasingly becoming the buyers. Unlike human shoppers who respond to countdown timers and visual banners, AI buyers operate on strict utility functions, constraints, and budgets. 
-  > If a merchant relies on static rules or unconstrained LLMs, they either lose high-intent AI traffic or leak profit through uncontrolled discounting. Merchants need a way to teach AI how their specific business wins."
+  > "When an AI becomes the buyer, products stop being enough.
+  > If three different merchants can satisfy the exact same buyer prompt with good backpacks, what makes the AI choose one merchant over another?
+  > It cannot just be search keywords or storefront photos. It comes down to commercial terms: pricing, bundles, guarantees, delivery speed, and inventory confidence.
+  > [PAUSE]
+  > The question every business will face is: *What makes this merchant worth choosing?*"
 
 ---
 
-### Segment 2: System Thesis & Architecture (0:25 – 0:50)
+### ACT 2 — THE PRODUCT (0:25 – 0:50)
 - **Visual**: Show the Architecture Invariant diagram:
   `LLM Proposes ➔ Code Validates ➔ Code Executes ➔ Razorpay Reports ➔ Agent Learns`
 - **Narrator**:
-  > "Meet the Merchant Policy Agent. Our core thesis is simple: The LLM proposes commercial strategies, but deterministic code validates and executes them, and Razorpay provides the authoritative financial truth.
-  > The LLM is never given financial authority. It cannot invent prices or bypass margin floors. Every decision is grounded in real unit economics and verified through Razorpay transactions."
+  > "We built the **Merchant Policy Agent**.
+  > It is not a shopping chatbot. It is not an AI recommendation widget.
+  > It is a policy runtime that learns merchant-specific commercial strategies to maximize profitable revenue while strictly respecting business constraints.
+  > In simple terms: it understands buyer intent, decides the most competitive commercial offer, and learns from verified transaction outcomes."
 
 ---
 
-### Segment 3: Canonical Buyer Journey (0:50 – 1:40)
-- **Visual**: Switch to the **AI Decisions Ledger** (`/decisions`) in the Merchant Control Center. Open the drawer for the hero opportunity (`"I need a travel backpack for a business trip under ₹8,000"`).
+### ACT 3 — THE TRUST BOUNDARY (0:50 – 1:15)
+- **Visual**: Highlight the Execution Boundary & Safety Filter contracts.
 - **Narrator**:
-  > "Let's see this in action for our hero merchant, Atlas Travel Gear. 
-  > An AI buyer submits a request for a business travel backpack under ₹8,000. 
-  > Our intent engine extracts the category, specs, and budget. The policy agent generates commercial candidates: a standalone backpack, an alternative, and a complementary bundle with a laptop sleeve.
-  > The contextual bandit selects the bundle strategy. Before anything is offered, our deterministic safety gate re-evaluates the catalog in real time: margin floor of 25% is satisfied, discount ceiling of 20% is respected, and physical inventory is atomically reserved.
-  > An order is created through Razorpay in Test Mode for ₹3,499."
+  > "Here is the engineering reality: if you let an LLM directly set prices, issue discounts, or create orders, it will hallucinate margins into the ground.
+  > Our foundational architectural rule is simple:
+  > [PAUSE]
+  > **The LLM can propose. It cannot spend.**
+  > More precisely: *The LLM proposes. Code validates. Code executes. Razorpay reports. The agent learns.*
+  > The model can propose strategies like a single product, a complementary bundle, or even no offer. But deterministic code owns margin floors, discount ceilings, inventory locks, staleness checks, and payment authorization."
 
 ---
 
-### Segment 4: Authoritative Outcome & Learning (1:40 – 2:15)
-- **Visual**: Show the **Decision Lineage Drawer** highlighting Stages 8 to 11 (Razorpay Payment ID ➔ Outcome Feedback ➔ Realized Contribution ➔ LinUCB Update). Then transition to the **Learning Center** (`/learning`).
+### ACT 4 — LIVE PROOF (1:15 – 2:45)
+- **Visual**: Switch to **AI Decisions Ledger** (`http://localhost:3000/decisions`). Open the top unexecuted decision drawer (`dec_20bfb8ca2e85`). Click **"Open Test Checkout"** and complete payment in the authentic Razorpay Test Mode popup.
 - **Narrator**:
-  > "Here is the closed-loop differentiator: The execution is not the end. When Razorpay confirms payment capture via webhook, our Outcome Feedback service calculates the exact gross economic contribution: ₹3,499 realized revenue minus ₹1,900 COGS equals ₹1,599 realized profit.
-  > This authoritative reward updates our online LinUCB learning model. 
-  > Notice in the Learning Center: The model now has a stronger learned affinity for bundling laptop sleeves in business travel contexts. But critically, learning does NOT automatically mutate the merchant's governed commercial policy."
+  > "Let us see it live. This is the Merchant AI Control Center for our demo business, Atlas Travel Gear.
+  > A buyer agent submitted a prompt: *'High quality travel backpack for weekend travel under 7500.'*
+  > Here is the decision drawer. Look at what happened before any human touched this:
+  > 1. The system extracted buyer intent and context.
+  > 2. The model proposed a candidate offer: the Atlas All-Weather Backpack at ₹2,999.
+  > 3. Our LinUCB contextual bandit evaluated expected contribution.
+  > 4. Deterministic code ran a fresh safety check. The margin floor is respected. Inventory is confirmed. The status is **ADMISSIBLE**.
+  > Notice this button: **'Open Test Checkout'**.
+  > This button only exists because this decision is fresh, admissible, and authorized. If the model had proposed an unsafe discount, or if inventory had run out, the execution boundary would have rejected it, and this button would not exist.
+  > [Action: Click 'Open Test Checkout' -> Razorpay Test Mode popup opens]
+  > Watch what just happened. The frontend did not mock an order. It called our execution boundary. The boundary atomically locked inventory and created an authentic Razorpay Test Mode order.
+  > Now Razorpay Test Mode takes over. The AI did not touch the payment layer. Razorpay handles checkout.
+  > [Action: Complete simulated payment in Razorpay modal]"
 
 ---
 
-### Segment 5: Governance Plane & Control Center (2:15 – 2:40)
-- **Visual**: Switch to **Policy Governance** (`/policies`). Show candidate `cand_54256751` and click 'Evaluate Promotion' to show the modal rejecting with `INSUFFICIENT_EVIDENCE`.
+### ACT 5 — WHY THIS IS DIFFERENT (2:45 – 4:10)
+- **Visual**: Show the auto-refreshed Decision Drawer displaying all 11 stages active. Then switch to **Policies** (`http://localhost:3000/policies`).
 - **Narrator**:
-  > "In the Policy Governance tab, merchants retain total control. Experimental candidates are tracked in an isolated candidate registry. 
-  > When we evaluate this bundle policy for promotion to become the merchant's active baseline, the system strictly rejects it: sample size is insufficient. 
-  > An AI hypothesis cannot self-promote into production without proving statistical significance and financial safety. The merchant's baseline remains safe."
+  > "The payment completed in Razorpay Test Mode. The webhook was verified with HMAC-SHA256.
+  > Look at the complete 11-stage identity chain:
+  > **Request ➔ Opportunity ➔ Decision ➔ Authorization ➔ Execution ➔ Order ➔ Payment ➔ Outcome ➔ Evidence ➔ Memory ➔ Model Update.**
+  > Every link is an immutable, auditable database record.
+  > This brings us to the core distinction:
+  > A prediction is not an outcome. A simulation is not a transaction. Only a verified transaction outcome becomes learning evidence.
+  > When this payment succeeded, our outcome service computed the realized gross contribution, stored it in policy memory, and updated the LinUCB model parameters.
+  > Now look at the Policies tab. Even though the model learned from that transaction, notice that the active policy did NOT silently change.
+  > Policy promotion is governed. A candidate policy only graduates to active when it passes statutory safety checks and satisfies sample-size evidence criteria. The merchant stays in control."
 
 ---
 
-### Segment 6: Differentiation & Close (2:40 – 3:00)
-- **Visual**: Show the **Overview Dashboard** (`/`) with live KPIs (35 opportunities, 17 paid transactions, ₹19,529.05 observed contribution) and the automated test accounting badge (926 passed).
+### ACT 6 — WE TRIED TO BREAK IT (4:10 – 4:35)
+- **Visual**: Show the validation and benchmark documentation badges (919 tests, 31 adversarial scenarios).
 - **Narrator**:
-  > "This is not a generic chatbot or a static recommender. It is an autonomous commercial policy learning loop designed specifically for the agentic commerce era—backed by 926 rigorous automated tests, zero fake metrics, and the financial authority of Razorpay.
+  > "Because this handles commercial transactions, we spent as much time trying to break it as building it.
+  > We built a benchmark suite of 31 adversarial scenarios and ran 919 automated regression tests covering:
+  > - decisions past their 15-minute freshness TTL,
+  > - duplicate webhook replays,
+  > - payment failures resulting in zero reward,
+  > - cross-tenant access attempts,
+  > - and concurrent inventory exhaustion.
+  > Every single test enforces that the execution boundary never leaks money or crosses tenant borders."
+
+---
+
+### ACT 7 — FINAL MESSAGE (4:35 – 5:00)
+- **Visual**: Return to the **Overview Dashboard** (`http://localhost:3000`).
+- **Narrator**:
+  > "Today, merchants spend billions optimizing websites for human eyes.
+  > [PAUSE]
+  > As AI becomes the buyer, merchants will not be optimizing storefront pixels. They will be optimizing commercial policies for autonomous decision engines.
+  > That is what we built: a system that protects the merchant's bottom line while teaching an AI why this business is worth choosing.
   > Thank you."
+
+---
+
+### 3-Line Judge Memory Test
+1. **The Core Rule**: The LLM proposes commercial strategies, but deterministic code validates margins, locks inventory, and authorizes execution.
+2. **The Truth Layer**: Razorpay Test Mode provides the tamper-proof transaction truth that feeds the closed-loop learning model.
+3. **The Commercial Vision**: As AI becomes the buyer, merchants will compete on intelligent, governed commercial policies rather than human storefront layouts.
 
 ---
 

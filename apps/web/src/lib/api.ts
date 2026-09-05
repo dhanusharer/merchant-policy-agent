@@ -71,6 +71,17 @@ export const api = {
   getDecisionDetail: (decisionId: string, merchantId: string) =>
     request<DecisionDetail>(`/api/v1/dashboard/decisions/${encodeURIComponent(decisionId)}?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),
 
+  executeDecision: (decisionId: string, merchantId: string) =>
+    request<any>(`/api/v1/decisions/${encodeURIComponent(decisionId)}/execute`, {
+      method: 'POST',
+      body: JSON.stringify({ merchant_id: merchantId })
+    }, merchantId),
+
+  reconcileOrder: (orderId: string) =>
+    request<any>(`/api/v1/orders/${encodeURIComponent(orderId)}/reconcile`, {
+      method: 'POST'
+    }),
+
   // 3. Policies
   getPolicies: (merchantId: string) =>
     request<PolicyManagement>(`/api/v1/dashboard/policies?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),

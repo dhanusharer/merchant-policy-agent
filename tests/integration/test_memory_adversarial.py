@@ -29,7 +29,7 @@ Verifies the 25 adversarial failure modes specified in Phase 8.3 requirements:
 + Static AST Boundary Audit
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytest
 from pydantic import ValidationError
 from services.experiments.schemas import VariantType
@@ -94,7 +94,7 @@ def make_adv_evidence(
         learning_eligible=is_safe,
         aggregation_key=f"{merchant_id}:{buyer_context_key}:{policy_id}:{policy_version}",
         idempotency_key=f"idem_adv_{idx}",
-        observed_at=datetime.utcnow() - timedelta(minutes=idx)
+        observed_at=datetime.now(timezone.utc) - timedelta(minutes=idx)
     )
 
 

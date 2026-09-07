@@ -5,7 +5,7 @@ Mathematical Model, Replay, Supersession, Versioning, Concurrency, Numerical Rob
 """
 
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytest
 from services.learning.algorithm import ContextualLinearUCB, REWARD_SCALE_FACTOR
 from services.learning.features import (
@@ -107,7 +107,7 @@ async def test_evidence_and_supersession_rebuild_integrity(db_session, seed_adv_
         learning_eligible=True,
         aggregation_key="k",
         idempotency_key="id_adv_1",
-        observed_at=datetime.utcnow() - timedelta(minutes=30)
+        observed_at=datetime.now(timezone.utc) - timedelta(minutes=30)
     )
     # 2. Superseding payment captured (100000 paise)
     e2 = PolicyLearningEvidence(
@@ -133,7 +133,7 @@ async def test_evidence_and_supersession_rebuild_integrity(db_session, seed_adv_
         learning_eligible=True,
         aggregation_key="k",
         idempotency_key="id_adv_2",
-        observed_at=datetime.utcnow() - timedelta(minutes=10)
+        observed_at=datetime.now(timezone.utc) - timedelta(minutes=10)
     )
     # 3. Ineligible evidence (safety guardrail violation)
     e3 = PolicyLearningEvidence(
@@ -159,7 +159,7 @@ async def test_evidence_and_supersession_rebuild_integrity(db_session, seed_adv_
         learning_eligible=False,  # Excluded!
         aggregation_key="k",
         idempotency_key="id_adv_3",
-        observed_at=datetime.utcnow() - timedelta(minutes=5)
+        observed_at=datetime.now(timezone.utc) - timedelta(minutes=5)
     )
 
     await PolicyMemoryService.record_observation(db_session, e1)

@@ -1,7 +1,7 @@
 """Webhook Ingestion Service with Cryptographic Verification and Atomic Deduplication."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -135,7 +135,7 @@ class WebhookService:
                                     currency=payment_payload.get("currency", "INR"),
                                     status="captured",
                                     method=payment_payload.get("method"),
-                                    captured_at=datetime.utcnow()
+                                    captured_at=datetime.now(timezone.utc)
                                 )
                                 db.add(new_payment)
                             else:

@@ -1,6 +1,6 @@
 """Service implementation for managing merchant contextual learning models in Phase 8.4."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 from typing import Optional, Dict, Any, List, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -113,7 +113,7 @@ class PolicyLearningModelService:
                 theta_json=model.theta,
                 observation_count=model.observation_count,
                 version=PolicyLearningModelState.version + 1,
-                last_updated_at=datetime.utcnow()
+                last_updated_at=datetime.now(timezone.utc)
             )
         )
         res = await db.execute(stmt)
@@ -296,7 +296,7 @@ class PolicyLearningModelService:
             merchant_id=merchant_id,
             observation_count=rebuilt_model.observation_count,
             dimension=FEATURE_DIMENSION,
-            rebuilt_at=datetime.utcnow()
+            rebuilt_at=datetime.now(timezone.utc)
         )
 
     @classmethod

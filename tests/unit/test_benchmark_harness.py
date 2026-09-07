@@ -65,6 +65,30 @@ from services.benchmark.observer import BenchmarkObserver
 from services.benchmark.assertions import AssertionEvaluator
 from services.benchmark.runner import CanonicalBenchmarkRunner
 from services.benchmark.reporter import BenchmarkReporter
+from services.razorpay.models import RazorpayOrderResponse
+from services.razorpay.orders import RazorpayOrderService
+import uuid
+
+
+@pytest.fixture(autouse=True)
+def mock_razorpay_order_calls(monkeypatch):
+    """Hermetic unit test isolation: mock Razorpay order creation to avoid live network calls."""
+    async def _mock_create_order(self, amount_paise: int, receipt: str, currency: str = "INR", notes=None, payment_capture=1):
+        return RazorpayOrderResponse(
+            id=f"order_mock_{uuid.uuid4().hex[:8]}",
+            entity="order",
+            amount=amount_paise,
+            amount_paid=0,
+            amount_due=amount_paise,
+            currency=currency,
+            receipt=receipt,
+            status="created",
+            attempts=0,
+            notes=notes or {},
+            created_at=1725364800
+        )
+
+    monkeypatch.setattr(RazorpayOrderService, "create_order", _mock_create_order)
 
 
 # ==================== Test A: Scenario Schema Validation ====================

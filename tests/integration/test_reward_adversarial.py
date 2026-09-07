@@ -23,7 +23,7 @@ Verifies the 20 adversarial failure modes specified in Phase 8.2 requirements:
 20. Expected contribution being mistaken for observed contribution
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 from services.experiments.schemas import VariantType
 from services.learning.schemas import (
@@ -70,7 +70,7 @@ def create_base_evidence(idx: int = 1, merchant: str = "merch_atlas", policy: st
         learning_eligible=True,
         aggregation_key=f"{merchant}:bck_test:{policy}:merchant-policy/v1",
         idempotency_key=f"idem_adv_{idx}",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
 
 

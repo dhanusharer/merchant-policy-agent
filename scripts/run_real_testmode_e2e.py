@@ -14,7 +14,7 @@ import asyncio
 import uuid
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add project root to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -79,7 +79,7 @@ async def run_real_test_mode_e2e():
         with open(evidence_path, "w", encoding="utf-8") as f:
             f.write(f"""# Real Test Mode E2E Run Evidence
 
-**Execution Timestamp**: {datetime.utcnow().isoformat()}Z  
+**Execution Timestamp**: {datetime.now(timezone.utc).isoformat()}  
 **Status**: **AWAITING TEST CREDENTIALS**  
 
 ### Diagnostic Log:
@@ -140,7 +140,7 @@ Configure `RAZORPAY_KEY_ID=rzp_test_...` in `.env` and re-execute `scripts/run_r
         with open(evidence_path, "w", encoding="utf-8") as f:
             f.write(f"""# Real Test Mode E2E Run Evidence
 
-**Execution Timestamp**: {datetime.utcnow().isoformat()}Z  
+**Execution Timestamp**: {datetime.now(timezone.utc).isoformat()}  
 **Status**: **ORDER CREATED ON RAZORPAY TEST SERVERS**  
 **Razorpay Order ID**: `{order.razorpay_order_id}`  
 **Internal Order ID**: `{order.id}`  

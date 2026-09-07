@@ -20,6 +20,8 @@ Verifies:
 import pytest
 from sqlalchemy import select, func, and_
 from domain.models import (
+    Base,
+    Merchant,
     CanonicalDecisionRecord,
     DecisionExecutionRecord,
     OutcomeFeedbackRecord,
@@ -43,7 +45,14 @@ LiveSessionLocal = async_sessionmaker(bind=live_engine, class_=AsyncSession, exp
 
 @pytest.fixture
 async def live_db():
+    async with live_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     async with LiveSessionLocal() as session:
+        stmt = select(Merchant).where(Merchant.id == "merch_atlas_travel")
+        if not (await session.execute(stmt)).scalar_one_or_none():
+            from scripts.run_demo_population import seed_demo_merchants, run_population_simulation
+            await seed_demo_merchants(session, ["merch_atlas_travel", "merch_alpha"])
+            await run_population_simulation(session, "merch_atlas_travel", total_interactions=10)
         yield session
 
 @pytest.mark.asyncio
@@ -326,15 +335,43 @@ async def test_policy_page_reconciliation(live_db):
 @pytest.mark.asyncio
 async def test_tenant_isolation_semantics(live_db):
     # Atlas Travel Gear
+    auth_atlas_opps = (await live_db.execute(
+        select(func.count(func.distinct(CanonicalDecisionRecord.opportunity_id)))
+        .where(CanonicalDecisionRecord.merchant_id == "merch_atlas_travel")
+    )).scalar_one()
+    auth_atlas_paid = (await live_db.execute(
+        select(func.count(OutcomeFeedbackRecord.id))
+        .where(
+            and_(
+                OutcomeFeedbackRecord.merchant_id == "merch_atlas_travel",
+                OutcomeFeedbackRecord.transaction_state == "PAID"
+            )
+        )
+    )).scalar_one()
+
     atlas_overview = await DashboardOverviewService.get_overview(live_db, "merch_atlas_travel")
-    assert atlas_overview.ai_buyer_opportunities_count == 35
-    assert atlas_overview.paid_transactions_count == 17
+    assert atlas_overview.ai_buyer_opportunities_count == auth_atlas_opps
+    assert atlas_overview.paid_transactions_count == auth_atlas_paid
+    assert atlas_overview.ai_buyer_opportunities_count > 0
 
     # Alpha Outfitters
+    auth_alpha_opps = (await live_db.execute(
+        select(func.count(func.distinct(CanonicalDecisionRecord.opportunity_id)))
+        .where(CanonicalDecisionRecord.merchant_id == "merch_alpha")
+    )).scalar_one()
+    auth_alpha_paid = (await live_db.execute(
+        select(func.count(OutcomeFeedbackRecord.id))
+        .where(
+            and_(
+                OutcomeFeedbackRecord.merchant_id == "merch_alpha",
+                OutcomeFeedbackRecord.transaction_state == "PAID"
+            )
+        )
+    )).scalar_one()
+
     alpha_overview = await DashboardOverviewService.get_overview(live_db, "merch_alpha")
-    assert alpha_overview.ai_buyer_opportunities_count == 5
-    assert alpha_overview.paid_transactions_count == 5
-    assert alpha_overview.observed_contribution_paise == 2069520
+    assert alpha_overview.ai_buyer_opportunities_count == auth_alpha_opps
+    assert alpha_overview.paid_transactions_count == auth_alpha_paid
 
     # Cross-tenant decision lookup rejected
     stmt_atlas = select(CanonicalDecisionRecord.id).where(

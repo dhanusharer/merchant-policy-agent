@@ -1,6 +1,6 @@
 """Unit tests for Phase 8.3 Policy Memory schemas and contracts."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 from services.experiments.schemas import VariantType
@@ -44,7 +44,7 @@ def test_policy_memory_schema_valid():
         reward_contribution_paise=175000,
         margin_percent=50.0,
         idempotency_key="mem_evi_01",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
 
     assert mem.memory_version == "merchant-memory/v1"
@@ -72,7 +72,7 @@ def test_policy_memory_forbids_extra_fields():
             reward_state=RewardState.REWARD_ZERO,
             is_admissible=True,
             idempotency_key="mem_evi_02",
-            observed_at=datetime.utcnow(),
+            observed_at=datetime.now(timezone.utc),
             learned_policy_rank=1,      # FORBIDDEN!
             bandit_selection_weight=0.9 # FORBIDDEN!
         )

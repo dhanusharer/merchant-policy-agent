@@ -1,6 +1,6 @@
 """Unit tests for Phase 8.1 Learning Evidence schemas and contracts."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 from services.experiments.schemas import VariantType
@@ -43,7 +43,7 @@ def test_learning_evidence_schema_valid():
         eligibility_reasons=["Valid quality, complete provenance, satisfied guardrails."],
         aggregation_key="merch_atlas_travel:bck_travel_pack_tier_mid_abc123:prop_01:merchant-policy/v1",
         idempotency_key="evi_obs_exp_01_scen_01_TREATMENT",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
 
     assert evidence.evidence_version == "merchant-learning/v1"
@@ -71,7 +71,7 @@ def test_learning_evidence_schema_forbids_extra_fields():
             learning_eligible=False,
             aggregation_key="key",
             idempotency_key="idem",
-            observed_at=datetime.utcnow(),
+            observed_at=datetime.now(timezone.utc),
             fake_reward_metric=999.0  # FORBIDDEN!
         )
 

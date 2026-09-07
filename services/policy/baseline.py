@@ -6,7 +6,7 @@ beyond deterministic heuristics.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from domain.commerce_schemas import MerchantCommerceContext, ProductResponse
 from domain.intent_schemas import BuyerIntent, ConfidenceLevel
@@ -49,7 +49,7 @@ class DeterministicPolicyBaseline:
                 confidence=ConfidenceLevel.HIGH,
                 validation_status=CandidateValidationStatus.APPROVED
             )
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             return PolicyProposal(
                 proposal_id=proposal_id,
                 merchant_id=context.merchant_id,
@@ -128,7 +128,7 @@ class DeterministicPolicyBaseline:
         ranked = self.scorer.rank_candidates(candidates, context)
         approved = [c for c in ranked if c.validation_status == CandidateValidationStatus.APPROVED]
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if approved:
             status = ProposalStatus.APPROVED_FOR_EVALUATION
             selected = approved[0]

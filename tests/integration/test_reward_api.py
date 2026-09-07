@@ -1,6 +1,6 @@
 """Integration tests for Phase 8.2 Reward API router."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 from httpx import AsyncClient
 from domain.models import Merchant, ExperimentRecord, ObservationRecord, LearningEvidenceRecord
@@ -57,7 +57,7 @@ async def seed_reward_evidence(db_session):
         learning_eligible=True,
         aggregation_key="merch_atlas_travel:bck_test:p_treat:merchant-policy/v1",
         idempotency_key="evi_rwd_test_01_key",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
     db_session.add_all([m, exp, obs, evi])
     await db_session.commit()

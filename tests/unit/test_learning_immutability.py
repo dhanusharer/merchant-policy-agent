@@ -1,6 +1,6 @@
 """Unit tests for LearningEvidenceService idempotency, deduplication, and immutability."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 from domain.models import Merchant, ExperimentRecord, ObservationRecord, LearningEvidenceRecord
 from domain.intent_schemas import BuyerIntent, BudgetConstraint, AttributeRequirement, OperatorType
@@ -77,7 +77,7 @@ async def test_observation_ingestion_idempotency_and_deduplication(db_session, s
         contribution_paise=obs_rec.contribution_paise,
         margin_percent=float(obs_rec.margin_percent),
         idempotency_key=obs_rec.idempotency_key,
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
 
     intent = BuyerIntent(

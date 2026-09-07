@@ -1,6 +1,6 @@
 """Unit tests for Phase 8.2 ContributionCalculator and RewardSignalEvaluator."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 from services.experiments.schemas import VariantType
 from services.learning.schemas import (
@@ -58,7 +58,7 @@ def test_reward_signal_evaluator_payment_success():
         learning_eligible=True,
         aggregation_key="agg_01",
         idempotency_key="idem_pay_succ",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
 
     reward = RewardSignalEvaluator.evaluate_opportunity(evidence)
@@ -91,7 +91,7 @@ def test_reward_signal_evaluator_non_purchase_outcomes():
         learning_eligible=True,
         aggregation_key="agg_01",
         idempotency_key="idem_no_sel",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
     r_no_sel = RewardSignalEvaluator.evaluate_opportunity(evidence_no_sel)
     assert r_no_sel.reward_state == RewardState.REWARD_ZERO
@@ -117,7 +117,7 @@ def test_reward_signal_evaluator_non_purchase_outcomes():
         learning_eligible=True,
         aggregation_key="agg_01",
         idempotency_key="idem_unpaid",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
     r_unpaid = RewardSignalEvaluator.evaluate_opportunity(evidence_unpaid)
     assert r_unpaid.reward_state == RewardState.REWARD_ZERO
@@ -148,7 +148,7 @@ def test_reward_signal_evaluator_ineligible_evidence_rejected():
         eligibility_reasons=["Sample size too small"],
         aggregation_key="agg_01",
         idempotency_key="idem_inelig",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
     r_inelig = RewardSignalEvaluator.evaluate_opportunity(evidence_inelig)
     assert r_inelig.reward_state == RewardState.REWARD_INELIGIBLE
@@ -180,7 +180,7 @@ def test_reward_signal_evaluator_guardrail_violation_retained():
         eligibility_reasons=["Margin 3.33% below floor"],
         aggregation_key="agg_01",
         idempotency_key="idem_guard",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
     r_guard = RewardSignalEvaluator.evaluate_opportunity(evidence_guard)
     assert r_guard.reward_state == RewardState.REWARD_GUARDRAIL_VIOLATION

@@ -5,6 +5,7 @@ any database access, and that the context object survives strict JSON round-trip
 """
 
 import json
+from datetime import datetime, timezone
 import pytest
 from decimal import Decimal
 from typing import List, Dict, Optional, Any
@@ -74,8 +75,7 @@ class DummyPolicyAgentConsumer:
 
 def test_schema_round_trip():
     """Verify MerchantCommerceContext survives full JSON serialization and deserialization."""
-    from datetime import datetime
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     sample_data = {
         "merchant_id": "merch_round_trip",
@@ -149,8 +149,7 @@ def test_schema_round_trip():
 
 def test_phase3_dummy_consumer_reasoning():
     """Verify dummy consumer answers commercial reasoning queries without database access."""
-    from datetime import datetime
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     backpack = ProductResponse(
         id="prod_bp",

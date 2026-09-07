@@ -1,7 +1,7 @@
 """Experiment Service: Lifecycle state management, persistent storage, and tenant isolation."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -74,7 +74,7 @@ class ExperimentService:
             randomization_seed=request.randomization_seed,
             assignment_strategy=request.assignment_strategy,
             status=ExperimentStatus.DRAFT,
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         # Pre-flight check
@@ -163,7 +163,7 @@ class ExperimentService:
         stmt = select(ExperimentRecord).where(ExperimentRecord.id == experiment_id)
         record = (await db.execute(stmt)).scalar_one()
         record.status = ExperimentStatus.RUNNING.value
-        record.start_at = datetime.utcnow()
+        record.start_at = datetime.now(timezone.utc)
         await db.commit()
 
         exp.status = ExperimentStatus.RUNNING
@@ -270,7 +270,7 @@ class ExperimentService:
         stmt = select(ExperimentRecord).where(ExperimentRecord.id == experiment_id)
         rec = (await db.execute(stmt)).scalar_one()
         rec.status = ExperimentStatus.COMPLETED.value
-        rec.end_at = datetime.utcnow()
+        rec.end_at = datetime.now(timezone.utc)
         await db.commit()
 
         return result

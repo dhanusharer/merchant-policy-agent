@@ -1,6 +1,6 @@
 """Reconciliation Service for Resolving Uncertain Order and Payment States."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 import structlog
 from sqlalchemy import select, or_
@@ -94,7 +94,7 @@ class ReconciliationService:
                         currency=captured_payment.currency,
                         status="captured",
                         method=captured_payment.method,
-                        captured_at=datetime.utcnow()
+                        captured_at=datetime.now(timezone.utc)
                     )
                     db.add(new_pmt)
                 else:

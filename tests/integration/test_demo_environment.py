@@ -28,6 +28,7 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 from domain.models import (
+    Base,
     Merchant,
     Product,
     CanonicalDecisionRecord,
@@ -67,6 +68,8 @@ LiveSessionLocal = async_sessionmaker(bind=live_engine, class_=AsyncSession, exp
 @pytest.fixture
 async def live_db():
     """Session connected to the authoritative persistent demo database."""
+    async with live_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     async with LiveSessionLocal() as session:
         yield session
 

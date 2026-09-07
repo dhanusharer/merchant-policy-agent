@@ -143,7 +143,7 @@ class CanonicalDecisionRuntime:
 
         # 6. Stage 3: Candidate Generation (Phase 4 Policy Agent)
         t_gen_start = time.perf_counter()
-        proposal = cls._policy_agent.generate_policy(intent, commerce_ctx)
+        proposal = await cls._policy_agent.generate_policy_async(intent, commerce_ctx)
         candidates = list(proposal.candidates)
         gen_latency_ms = (time.perf_counter() - t_gen_start) * 1000
 

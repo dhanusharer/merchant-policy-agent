@@ -1,6 +1,6 @@
 """Experiment Evaluator: Determines evidence status, guardrail compliance, and honest winner selection."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict
 from services.experiments.schemas import (
     PolicyExperiment,
@@ -58,7 +58,7 @@ class ExperimentEvaluator:
                 metric_deltas=metric_deltas,
                 guardrail_results=guardrail_results,
                 policy_diff=experiment.policy_diff,
-                generated_at=datetime.utcnow()
+                generated_at=datetime.now(timezone.utc)
             )
 
         # 2. Check Guardrail Failures
@@ -86,7 +86,7 @@ class ExperimentEvaluator:
                 metric_deltas=metric_deltas,
                 guardrail_results=guardrail_results,
                 policy_diff=experiment.policy_diff,
-                generated_at=datetime.utcnow()
+                generated_at=datetime.now(timezone.utc)
             )
 
         # 3. Evaluate Primary Metric (Zero Delta Check)
@@ -112,7 +112,7 @@ class ExperimentEvaluator:
                 metric_deltas=metric_deltas,
                 guardrail_results=guardrail_results,
                 policy_diff=experiment.policy_diff,
-                generated_at=datetime.utcnow()
+                generated_at=datetime.now(timezone.utc)
             )
 
         # 4. Effect Size & Uncertainty Threshold (Minimum Detectable Effect)
@@ -142,7 +142,7 @@ class ExperimentEvaluator:
                 metric_deltas=metric_deltas,
                 guardrail_results=guardrail_results,
                 policy_diff=experiment.policy_diff,
-                generated_at=datetime.utcnow()
+                generated_at=datetime.now(timezone.utc)
             )
 
         # 5. Decisive Winner Selection
@@ -179,5 +179,5 @@ class ExperimentEvaluator:
             metric_deltas=metric_deltas,
             guardrail_results=guardrail_results,
             policy_diff=experiment.policy_diff,
-            generated_at=datetime.utcnow()
+            generated_at=datetime.now(timezone.utc)
         )

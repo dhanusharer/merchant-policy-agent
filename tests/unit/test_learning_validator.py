@@ -1,6 +1,6 @@
 """Unit tests for LearningEvidenceValidator, provenance checks, and eligibility derivation."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 from services.experiments.schemas import ExperimentStatus, VariantType
 from services.learning.schemas import (
@@ -37,7 +37,7 @@ def valid_evidence():
         learning_eligible=True,
         aggregation_key="agg_key",
         idempotency_key="idem_01",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
 
 

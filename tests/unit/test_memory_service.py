@@ -1,6 +1,6 @@
 """Unit tests for Phase 8.3 PolicyMemoryService."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 import pytest
 from services.experiments.schemas import VariantType
 from services.learning.schemas import (
@@ -47,7 +47,7 @@ def make_evidence(
         learning_eligible=is_safe,
         aggregation_key=f"{merchant_id}:bck_test:{policy_id}:merchant-policy/v1",
         idempotency_key=f"idem_mem_{idx}",
-        observed_at=datetime.utcnow() - timedelta(minutes=idx)
+        observed_at=datetime.now(timezone.utc) - timedelta(minutes=idx)
     )
 
 

@@ -7,7 +7,7 @@ database persistence, and idempotent retrieval.
 
 import uuid
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
@@ -80,7 +80,7 @@ class PolicySelectionService:
             commerce_context=request.commerce_context
         )
 
-        now = request.decision_timestamp or datetime.utcnow()
+        now = request.decision_timestamp or datetime.now(timezone.utc)
         selection_id = f"sel_{uuid.uuid4().hex[:12]}"
 
         # 4. Persist selection record

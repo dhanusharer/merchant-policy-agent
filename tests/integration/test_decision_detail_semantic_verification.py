@@ -12,6 +12,8 @@ from sqlalchemy import select, and_
 
 from services.dashboard.service import DecisionViewService, PolicyViewService
 from domain.models import (
+    Base,
+    Merchant,
     CanonicalDecisionRecord,
     DecisionExecutionRecord,
     OutcomeFeedbackRecord,
@@ -24,10 +26,18 @@ from services.commerce_service import MerchantNotFoundError
 
 @pytest_asyncio.fixture
 async def db_session():
-    """Async database session connected to active test.db."""
-    engine = create_async_engine("sqlite+aiosqlite:///./test.db")
+    """Async database session connected to active test.db, hermetically initialized."""
+    engine = create_async_engine("sqlite+aiosqlite:///./test.db", connect_args={"check_same_thread": False})
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
     async with async_session() as session:
+        # Check if seeded; if not, seed demo data
+        stmt = select(Merchant).where(Merchant.id == "merch_atlas_travel")
+        if not (await session.execute(stmt)).scalar_one_or_none():
+            from scripts.run_demo_population import seed_demo_merchants, run_population_simulation
+            await seed_demo_merchants(session, ["merch_atlas_travel", "merch_alpha"])
+            await run_population_simulation(session, "merch_atlas_travel", total_interactions=10)
         yield session
     await engine.dispose()
 

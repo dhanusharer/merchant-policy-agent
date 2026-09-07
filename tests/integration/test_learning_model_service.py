@@ -1,6 +1,4 @@
-"""Integration tests for Phase 8.4 PolicyLearningModelService & API endpoints."""
-
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytest
 from httpx import AsyncClient, ASGITransport
 from apps.api.main import app
@@ -84,7 +82,7 @@ async def test_rebuild_from_memory_excludes_superseded_records(db_session, seed_
         learning_eligible=True,
         aggregation_key="k",
         idempotency_key="id_lms_1",
-        observed_at=datetime.utcnow() - timedelta(hours=2)
+        observed_at=datetime.now(timezone.utc) - timedelta(hours=2)
     )
     # Seed 2: reconciling record (PAYMENT_SUCCESS, 175000 paise)
     e2 = PolicyLearningEvidence(
@@ -110,7 +108,7 @@ async def test_rebuild_from_memory_excludes_superseded_records(db_session, seed_
         learning_eligible=True,
         aggregation_key="k",
         idempotency_key="id_lms_2",
-        observed_at=datetime.utcnow() - timedelta(hours=1)
+        observed_at=datetime.now(timezone.utc) - timedelta(hours=1)
     )
 
     await PolicyMemoryService.record_observation(db_session, e1)

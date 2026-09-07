@@ -1,6 +1,6 @@
 """Integration tests for Phase 8.3 Refinement: Reconciliation & Historical Memory Integrity."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytest
 from services.experiments.schemas import VariantType
 from services.learning.schemas import (
@@ -51,7 +51,7 @@ def make_reconciliation_evidence(
         learning_eligible=True,
         aggregation_key=f"{merchant_id}:bck_test:p_treat:merchant-policy/v1",
         idempotency_key=f"idem_{evidence_id}",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
 
 

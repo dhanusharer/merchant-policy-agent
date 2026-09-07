@@ -1,7 +1,7 @@
 """Reusable test fixtures and mock builders for MerchantCommerceContext."""
 
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone
 from domain.commerce_schemas import (
     MerchantCommerceContext,
     ProductResponse,
@@ -17,7 +17,7 @@ def build_test_commerce_context(
     target_aov_paise: int = 400000
 ) -> MerchantCommerceContext:
     """Build a complete, realistic MerchantCommerceContext for policy testing."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     products = [
         ProductResponse(

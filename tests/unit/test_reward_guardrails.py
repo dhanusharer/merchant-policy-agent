@@ -1,6 +1,6 @@
 """Unit tests for guardrail admissibility constraints in the reward layer."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 from services.experiments.schemas import VariantType
 from services.learning.schemas import (
@@ -51,7 +51,7 @@ def test_guardrail_breach_disqualifies_apparent_high_reward():
         eligibility_reasons=["Guardrail failure: Margin 11.11% violates floor 40.0%"],
         aggregation_key="agg_01",
         idempotency_key="idem_guard_breached",
-        observed_at=datetime.utcnow()
+        observed_at=datetime.now(timezone.utc)
     )
 
     reward = RewardSignalEvaluator.evaluate_opportunity(evidence_breached)
@@ -96,7 +96,7 @@ def test_guardrail_failures_remain_in_denominator_preventing_selection_bias():
                     learning_eligible=True,
                     aggregation_key="agg_01",
                     idempotency_key=f"idem_succ_{i}",
-                    observed_at=datetime.utcnow()
+                    observed_at=datetime.now(timezone.utc)
                 )
             )
         )
@@ -124,7 +124,7 @@ def test_guardrail_failures_remain_in_denominator_preventing_selection_bias():
                     learning_eligible=True,
                     aggregation_key="agg_01",
                     idempotency_key=f"idem_zero_{i}",
-                    observed_at=datetime.utcnow()
+                    observed_at=datetime.now(timezone.utc)
                 )
             )
         )
@@ -154,7 +154,7 @@ def test_guardrail_failures_remain_in_denominator_preventing_selection_bias():
                     eligibility_reasons=["Margin 5% violates 40% floor"],
                     aggregation_key="agg_01",
                     idempotency_key=f"idem_fail_{i}",
-                    observed_at=datetime.utcnow()
+                    observed_at=datetime.now(timezone.utc)
                 )
             )
         )

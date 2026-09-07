@@ -77,6 +77,16 @@ export const api = {
       body: JSON.stringify({ merchant_id: merchantId })
     }, merchantId),
 
+  evaluateDecision: (merchantId: string, prompt?: string) =>
+    request<any>('/api/v1/decisions/evaluate', {
+      method: 'POST',
+      body: JSON.stringify({
+        merchant_id: merchantId,
+        opportunity_id: `opp_live_demo_${Date.now()}`,
+        raw_prompt: prompt || 'Looking for a travel pack together with laptop sleeve under 6000'
+      })
+    }, merchantId),
+
   reconcileOrder: (orderId: string) =>
     request<any>(`/api/v1/orders/${encodeURIComponent(orderId)}/reconcile`, {
       method: 'POST'

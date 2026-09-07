@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, RefreshCw, Cpu, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, RefreshCw, Cpu, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useMerchant } from '@/lib/MerchantContext';
 import { api, formatPaise, formatDateTime, getExecutionStatusBadge, getOutcomeStatusBadge } from '@/lib/api';
 import { DecisionListResponse } from '@/lib/types';
@@ -11,6 +11,7 @@ export default function DecisionsPage() {
   const { currentMerchant } = useMerchant();
   const [data, setData] = useState<DecisionListResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDecisionId, setSelectedDecisionId] = useState<string | null>(null);
 
@@ -32,6 +33,21 @@ export default function DecisionsPage() {
       .then((res) => setData(res))
       .catch((err) => setError(err.message || 'Failed to load decisions'))
       .finally(() => setLoading(false));
+  };
+
+  const handleCreateOpportunity = async () => {
+    setIsCreating(true);
+    try {
+      const res = await api.evaluateDecision(currentMerchant.id);
+      if (res && res.decision_id) {
+        await loadDecisions();
+        setSelectedDecisionId(res.decision_id);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to evaluate buyer opportunity');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   useEffect(() => {
@@ -57,14 +73,24 @@ export default function DecisionsPage() {
           </p>
         </div>
 
-        <button
-          onClick={loadDecisions}
-          disabled={loading}
-          className="stripe-btn-ghost flex items-center gap-1.5 text-xs"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleCreateOpportunity}
+            disabled={isCreating}
+            className="stripe-btn-primary flex items-center gap-1.5 text-xs bg-[#533afd] hover:bg-[#432ec7] text-white px-3 py-1.5 rounded-lg shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            <Sparkles className={`w-3.5 h-3.5 ${isCreating ? 'animate-spin' : ''}`} />
+            <span>{isCreating ? 'Evaluating...' : '+ New Buyer Request'}</span>
+          </button>
+          <button
+            onClick={loadDecisions}
+            disabled={loading}
+            className="stripe-btn-ghost flex items-center gap-1.5 text-xs"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar */}

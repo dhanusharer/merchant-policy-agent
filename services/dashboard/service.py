@@ -462,7 +462,7 @@ class DecisionViewService:
             merchant_id=dec_rec.merchant_id,
             opportunity_id=dec_rec.opportunity_id,
             buyer_context_key=dec_rec.buyer_context_key,
-            created_at=dec_rec.created_at,
+            created_at=dec_rec.created_at if (dec_rec.created_at and dec_rec.created_at.tzinfo) else dec_rec.created_at.replace(tzinfo=timezone.utc) if dec_rec.created_at else None,
             raw_prompt=envelope_data.get("intent_summary", {}).get("raw_prompt"),
             authorization_id=exec_rec.authorization_id if exec_rec else None,
             execution_id=exec_rec.id if exec_rec else None,

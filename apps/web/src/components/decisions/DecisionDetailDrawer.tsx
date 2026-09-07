@@ -11,7 +11,10 @@ import {
   Lock,
   Eye,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  RefreshCw,
+  Sparkles,
+  Clock
 } from 'lucide-react';
 import { DecisionDetail } from '@/lib/types';
 import { api, formatPaise, formatPercent, formatDateTime } from '@/lib/api';
@@ -29,11 +32,17 @@ export function DecisionDetailDrawer({ decisionId, merchantId, onClose }: Decisi
   const [activeTab, setActiveTab] = useState<'buyer' | 'merchant' | 'candidates'>('buyer');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isEvaluatingFresh, setIsEvaluatingFresh] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutSuccessMessage, setCheckoutSuccessMessage] = useState<string | null>(null);
 
+  const isStaleByTtl = detail?.created_at
+    ? Date.now() - new Date(detail.created_at).getTime() > 900 * 1000
+    : false;
+
   const isExecutable =
     detail &&
+    !isStaleByTtl &&
     detail.safety_status === 'ADMISSIBLE' &&
     detail.buyer_offer?.strategy_type !== 'NO_OFFER' &&
     detail.execution_status !== 'SAFETY_REJECTED' &&
@@ -47,6 +56,24 @@ export function DecisionDetailDrawer({ decisionId, merchantId, onClose }: Decisi
     detail.execution_status !== 'INVALID_DECISION' &&
     detail.outcome_status !== 'PAYMENT_SUCCESS';
 
+  const handleEvaluateFresh = async () => {
+    setIsEvaluatingFresh(true);
+    setCheckoutError(null);
+    setCheckoutSuccessMessage(null);
+    try {
+      const res = await api.evaluateDecision(merchantId);
+      if (res && res.decision_id) {
+        const freshDetail = await api.getDecisionDetail(res.decision_id, merchantId);
+        setDetail(freshDetail);
+        setCheckoutSuccessMessage(`Evaluated fresh opportunity (${res.decision_id}). Ready for checkout!`);
+      }
+    } catch (err: any) {
+      setCheckoutError(err.message || 'Failed to evaluate fresh opportunity');
+    } finally {
+      setIsEvaluatingFresh(false);
+    }
+  };
+
   const handleStartCheckout = async () => {
     if (!detail) return;
     setIsCheckingOut(true);
@@ -54,13 +81,22 @@ export function DecisionDetailDrawer({ decisionId, merchantId, onClose }: Decisi
     setCheckoutSuccessMessage(null);
 
     try {
-      // 1. Ensure boundary execution record exists and fetch order details
+      // 1. Traverse execution boundary
       const execResult = await api.executeDecision(detail.decision_id, merchantId);
+
+      if (!execResult.execution_authorized || execResult.boundary_status !== 'EXECUTION_COMPLETED') {
+        const rejectionMsg = execResult.rejection_reasons?.join(', ') || `Boundary execution rejected (${execResult.boundary_status})`;
+        setCheckoutError(rejectionMsg);
+        const updated = await api.getDecisionDetail(detail.decision_id, merchantId);
+        setDetail(updated);
+        return;
+      }
+
       const razorpayOrderId = execResult.razorpay_order_id || detail.razorpay_order_id;
       const authorizedAmountPaise = execResult.authorized_amount_paise || detail.authorized_amount_paise || detail.buyer_offer.offer_price_paise;
 
       if (!razorpayOrderId) {
-        throw new Error('No Razorpay Order ID generated from execution boundary.');
+        throw new Error('No Razorpay Order ID returned from execution boundary.');
       }
 
       const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TXLFfNuyfKpBqM';
@@ -507,6 +543,45 @@ export function DecisionDetailDrawer({ decisionId, merchantId, onClose }: Decisi
                           <span>Open Test Checkout</span>
                         </>
                       )}
+                    </button>
+                    {checkoutError && (
+                      <span className="text-[11px] text-rose-600 bg-rose-50 px-2 py-1 rounded">
+                        {checkoutError}
+                      </span>
+                    )}
+                    {checkoutSuccessMessage && (
+                      <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-1 rounded font-medium">
+                        {checkoutSuccessMessage}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Stale TTL Expired Alert & Live Evaluation Action */}
+              {(isStaleByTtl || detail.execution_status === 'DECISION_STALE') && detail.outcome_status !== 'PAYMENT_SUCCESS' && (
+                <div className="stripe-card p-4 bg-amber-50/60 border border-amber-200 rounded-lg shadow-sm space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-200 text-amber-900 tracking-wide uppercase">
+                        Safety TTL Expired (15m)
+                      </span>
+                      <span className="text-xs font-semibold text-amber-900">
+                        Decision Expired
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    In Phase 9.2, autonomous commercial decisions expire after 15 minutes to guarantee fresh inventory and financial safety. Generate a fresh live opportunity to test Razorpay Test Mode checkout.
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={handleEvaluateFresh}
+                      disabled={isEvaluatingFresh}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#533afd] hover:bg-[#432ec7] text-white text-xs font-semibold rounded shadow transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      <Sparkles className={`w-3.5 h-3.5 ${isEvaluatingFresh ? 'animate-spin' : ''}`} />
+                      <span>{isEvaluatingFresh ? 'Evaluating Fresh Opportunity...' : 'Evaluate Fresh Live Opportunity'}</span>
                     </button>
                     {checkoutError && (
                       <span className="text-[11px] text-rose-600 bg-rose-50 px-2 py-1 rounded">

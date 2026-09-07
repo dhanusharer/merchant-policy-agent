@@ -154,4 +154,61 @@ test.describe('Razorpay Test Mode Live Checkout & Closed-Loop Resolution', () =>
       await expect(page.locator('button:has-text("Open Test Checkout")')).not.toBeVisible();
     }
   });
+
+  test('Canonical Atlas demo rehearsal: Expired decision -> Evaluate Fresh Live Opportunity -> Deterministically shows Open Test Checkout -> Initiates Razorpay checkout', async ({ page }) => {
+    // 1. Navigate to decisions ledger
+    await page.goto('/decisions');
+    await page.waitForLoadState('networkidle');
+
+    // 2. Open the seeded historical expired fixture (opp_probe_before)
+    const expiredRow = page.locator('tbody tr:has-text("opp_probe_before")').first();
+    for (let p = 0; p < 5; p++) {
+      if (await expiredRow.isVisible()) break;
+      const nextBtn = page.locator('button:has-text("Next")');
+      if (await nextBtn.isVisible() && await nextBtn.isEnabled()) {
+        await nextBtn.click();
+        await page.waitForTimeout(400);
+      } else {
+        break;
+      }
+    }
+    await expect(expiredRow).toBeVisible({ timeout: 10000 });
+    await expiredRow.click();
+
+    // 3. Verify drawer opens with Safety TTL Expired alert
+    const drawer = page.locator('[role="dialog"]');
+    await expect(drawer).toBeVisible({ timeout: 5000 });
+    await expect(drawer.locator('text=Safety TTL Expired (15m)')).toBeVisible();
+
+    // 4. Verify "Open Test Checkout" is initially NOT shown because decision is expired
+    await expect(drawer.locator('button:has-text("Open Test Checkout")')).not.toBeVisible();
+
+    // 5. Click "Evaluate Fresh Live Opportunity"
+    const evalFreshBtn = drawer.locator('button:has-text("Evaluate Fresh Live Opportunity")');
+    await expect(evalFreshBtn).toBeVisible();
+    await evalFreshBtn.click();
+
+    // 6. Wait for fresh evaluation to finish and success message to display
+    await expect(drawer.locator('text=Ready for checkout!')).toBeVisible({ timeout: 15000 });
+
+    // 7. Verify fresh decision semantics in drawer:
+    await expect(drawer.locator('text=SINGLE_PRODUCT').or(drawer.locator('text=COMPLEMENTARY_BUNDLE')).first()).toBeVisible();
+    await expect(drawer.locator('text=ADMISSIBLE').first()).toBeVisible();
+    await expect(drawer.locator('text=PENDING_EXECUTION_GATE').first()).toBeVisible();
+
+    // 8. Verify "Open Test Checkout" is now visibly rendered and enabled!
+    const checkoutBtn = drawer.locator('button:has-text("Open Test Checkout")');
+    await expect(checkoutBtn).toBeVisible();
+    await expect(checkoutBtn).toBeEnabled();
+
+    // 9. Click "Open Test Checkout" and verify Razorpay iframe opens
+    await checkoutBtn.click();
+    await expect(page.locator('iframe.razorpay-checkout-frame')).toBeVisible({ timeout: 10000 });
+
+    // Clean up modal overlay
+    await page.evaluate(() => {
+      const container = document.querySelector('.razorpay-container');
+      if (container) container.remove();
+    });
+  });
 });

@@ -493,6 +493,12 @@ Phase 11 subjected the system to **49 hardened adversarial attacks** across five
 
 The system enforces strict separation of concerns across three distinct planes:
 
+<div align="center">
+  <img src="docs/architecture_diagram.svg" alt="System Architecture: Three Decoupled Planes" width="100%" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); margin-bottom: 20px;" />
+</div>
+
+> 📄 **Complete Architectural Deep Dive**: See the dedicated specification file [ARCHITECTURE.md](ARCHITECTURE.md) for full subsystem schemas, 11-stage pipeline latency profiles, and security invariants.
+
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                             1. EXECUTION PLANE                              │
@@ -501,7 +507,7 @@ The system enforces strict separation of concerns across three distinct planes:
 │  [Natural Language] ➔ [Intent Extractor] ➔ [Policy Candidate Generator]    │
 │                                                   │                         │
 │                                                   ▼                         │
-│  [Razorpay Order] leftarrow [Inventory Lock] leftarrow [Deterministic Margin Guard]      │
+│  [Razorpay Order] 🠔 [Inventory Lock] 🠔 [Deterministic Margin Guard]        │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        │ Realized Transaction
                                        ▼
@@ -512,7 +518,7 @@ The system enforces strict separation of concerns across three distinct planes:
 │  [Razorpay Webhook] ➔ [Outcome Feedback Service] ➔ [Gross Contribution]     │
 │                                                              │              │
 │                                                              ▼              │
-│  [Policy Memory Ledger] leftarrow [Disjoint LinUCB Bandit] leftarrow [Covariance Matrix A] │
+│  [Policy Memory Ledger] 🠔 [Disjoint LinUCB Bandit] 🠔 [Covariance Matrix A] │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        │ Observed Evidence
                                        ▼

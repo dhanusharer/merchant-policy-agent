@@ -161,6 +161,13 @@ class DecisionTrace(BaseModel):
     candidates_eligible_count: int = 0
 
 
+CANONICAL_MERCHANT_DEMO_PROMPTS: Dict[str, str] = {
+    "merch_atlas_travel": "High quality travel backpack for weekend travel under 7500",
+    "merch_alpha": "Need high quality ultralight alpine expedition travel backpack under 15000",
+    "merch_95_alpha": "High quality wireless noise cancelling headphones under 20000",
+}
+
+
 class CanonicalDecisionRequest(BaseModel):
     """Canonical shopping opportunity decision request."""
     model_config = ConfigDict(extra="forbid")
@@ -177,7 +184,10 @@ class CanonicalDecisionRequest(BaseModel):
     @model_validator(mode="after")
     def validate_buyer_input(self) -> "CanonicalDecisionRequest":
         if not self.buyer_intent and not (self.raw_prompt and self.raw_prompt.strip()):
-            raise ValueError("Either 'buyer_intent' or non-empty 'raw_prompt' must be provided.")
+            if self.merchant_id in CANONICAL_MERCHANT_DEMO_PROMPTS and (self.raw_prompt is None or self.raw_prompt == ""):
+                self.raw_prompt = CANONICAL_MERCHANT_DEMO_PROMPTS[self.merchant_id]
+            else:
+                raise ValueError("Either 'buyer_intent' or non-empty 'raw_prompt' must be provided.")
         return self
 
 

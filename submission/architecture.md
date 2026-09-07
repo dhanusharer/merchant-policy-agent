@@ -6,7 +6,15 @@
 
 ---
 
-## 1. System Architecture Flowchart
+## 1. Visual System Architecture Diagram
+
+<div align="center">
+  <img src="architecture_diagram.svg" alt="System Architecture: Three Decoupled Planes" width="100%" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); margin-bottom: 20px;" />
+</div>
+
+> 📄 **Root Specification**: See also root [ARCHITECTURE.md](../ARCHITECTURE.md) for full interactive Mermaid diagrams, 11-stage latency budgets, and security specifications.
+
+## 2. System Architecture Flowchart
 
 ```text
        ┌─────────────────────────────────────────────────────────────┐

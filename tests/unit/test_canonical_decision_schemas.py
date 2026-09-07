@@ -49,6 +49,20 @@ def test_canonical_decision_request_validation():
     req2 = CanonicalDecisionRequest(merchant_id="m1", buyer_intent=intent)
     assert req2.buyer_intent.category == "travel_backpack"
 
+    # 5. Canonical Demo merchant fallback when prompt is omitted
+    req_demo_atlas = CanonicalDecisionRequest(merchant_id="merch_atlas_travel")
+    assert req_demo_atlas.raw_prompt == "High quality travel backpack for weekend travel under 7500"
+
+    req_demo_alpha = CanonicalDecisionRequest(merchant_id="merch_alpha")
+    assert req_demo_alpha.raw_prompt == "Need high quality ultralight alpine expedition travel backpack under 15000"
+
+    req_demo_95_alpha = CanonicalDecisionRequest(merchant_id="merch_95_alpha")
+    assert req_demo_95_alpha.raw_prompt == "High quality wireless noise cancelling headphones under 20000"
+
+    # 6. Explicit prompt still overrides demo fallback
+    req_override = CanonicalDecisionRequest(merchant_id="merch_atlas_travel", raw_prompt="custom search")
+    assert req_override.raw_prompt == "custom search"
+
 
 def test_schema_extra_fields_forbidden():
     """Extra fields forbidden across all canonical decision schemas."""

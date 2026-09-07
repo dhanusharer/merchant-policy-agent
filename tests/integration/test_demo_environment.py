@@ -338,3 +338,67 @@ async def test_canonical_buyer_journey_live_execution(db_session):
     assert out_res.evidence_id is not None
     assert out_res.memory_id is not None
     assert out_res.reward_contribution_paise > 0
+
+
+@pytest.mark.asyncio
+async def test_canonical_atlas_demo_fixture_and_fresh_evaluation(live_db: AsyncSession):
+    """Verify that the seeded Atlas Travel Gear demo environment exhibits authentic expired state,
+    and deterministically generates a fresh, admissible, non-NO_OFFER decision ready for checkout."""
+    merchant_id = "merch_atlas_travel"
+
+    # 1. Verify seeded historical expired fixture
+    stmt = select(CanonicalDecisionRecord).where(
+        and_(
+            CanonicalDecisionRecord.merchant_id == merchant_id,
+            CanonicalDecisionRecord.opportunity_id == "opp_probe_before"
+        )
+    )
+    fixture_rec = (await live_db.execute(stmt)).scalar_one_or_none()
+    assert fixture_rec is not None, "Seeded expired fixture 'opp_probe_before' must exist"
+    
+    # Verify it is older than 15 minutes (900 seconds TTL)
+    now_utc = datetime.now(timezone.utc)
+    rec_created = fixture_rec.created_at
+    if rec_created.tzinfo is None:
+        rec_created = rec_created.replace(tzinfo=timezone.utc)
+    age_seconds = (now_utc - rec_created).total_seconds()
+    assert age_seconds >= 900, f"Fixture opp_probe_before must be >= 15m old for realistic demo rehearsal, got {age_seconds}s"
+
+    # 2. Verify fresh opportunity evaluation with canonical demo fallback
+    fresh_req = CanonicalDecisionRequest(
+        merchant_id=merchant_id,
+        opportunity_id=f"opp_verify_fresh_{uuid.uuid4().hex[:8]}"
+    )
+    # Check that canonical demo prompt was resolved
+    assert fresh_req.raw_prompt == "High quality travel backpack for weekend travel under 7500"
+
+    fresh_env = await CanonicalDecisionRuntime.decide(live_db, fresh_req)
+    assert fresh_env.decision_id is not None
+    assert fresh_env.merchant_id == merchant_id
+    
+    # 3. Decision must be admissible, pending execution gate, and strictly NOT NO_OFFER
+    assert fresh_env.safety_audit.status == "ADMISSIBLE"
+    assert fresh_env.execution_status == "PENDING_EXECUTION_GATE"
+    assert fresh_env.execution_authorized is False  # Phase 9.1 non-authorization invariant
+    assert fresh_env.buyer_offer.strategy_type != "NO_OFFER", "Fresh Atlas demo opportunity must not default to NO_OFFER"
+    assert fresh_env.buyer_offer.strategy_type in ("SINGLE_PRODUCT", "COMPLEMENTARY_BUNDLE")
+    assert fresh_env.buyer_offer.offered_price_paise > 0
+    assert "prod_travel_backpack" in fresh_env.buyer_offer.product_ids
+
+    # 4. Verify Phase 9.2 Execution Boundary successfully creates test checkout order
+    exec_req = DecisionExecuteRequest(
+        merchant_id=merchant_id,
+        idempotency_key=f"idem_verify_fresh_exec_{fresh_env.decision_id}"
+    )
+    exec_res = await DecisionExecutionBoundaryService.execute_decision(
+        db=live_db,
+        decision_id=fresh_env.decision_id,
+        request=exec_req
+    )
+    assert exec_res.boundary_status == ExecutionBoundaryStatus.EXECUTION_COMPLETED
+    assert exec_res.execution_authorized is True
+    assert exec_res.order_id is not None
+    assert exec_res.razorpay_order_id is not None
+    assert exec_res.razorpay_order_id.startswith("order_")
+    assert exec_res.authorized_amount_paise == fresh_env.buyer_offer.offered_price_paise
+

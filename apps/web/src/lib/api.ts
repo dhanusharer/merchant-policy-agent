@@ -83,7 +83,7 @@ export const api = {
       body: JSON.stringify({
         merchant_id: merchantId,
         opportunity_id: `opp_live_demo_${Date.now()}`,
-        raw_prompt: prompt || 'Looking for a travel pack together with laptop sleeve under 6000'
+        raw_prompt: prompt || undefined
       })
     }, merchantId),
 

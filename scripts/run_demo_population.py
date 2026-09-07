@@ -16,7 +16,7 @@ import os
 import asyncio
 import uuid
 from decimal import Decimal
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -40,6 +40,7 @@ from domain.models import (
     MerchantPolicyVersionRecord,
     CanonicalDecisionRecord,
     DecisionExecutionRecord,
+    ExecutionRecord,
     Order,
     Payment,
     OutcomeFeedbackRecord,
@@ -156,7 +157,7 @@ async def seed_demo_merchants(db: AsyncSession) -> None:
             price_paise=299900,  # INR 2,999.00
             cost_paise=180000,   # INR 1,800.00 (COGS)
             currency="INR",
-            inventory_quantity=25,
+            inventory_quantity=100,  # Robust demo inventory to prevent stock exhaustion across repeated demo runs
             attributes={"laptop_size": 16.0, "water_resistant": True, "volume_liters": 35},
             is_active=True
         ),
@@ -170,7 +171,7 @@ async def seed_demo_merchants(db: AsyncSession) -> None:
             price_paise=79900,   # INR 799.00
             cost_paise=35000,    # INR 350.00 (COGS)
             currency="INR",
-            inventory_quantity=30,
+            inventory_quantity=100,
             attributes={"laptop_size": 16.0, "water_resistant": True},
             is_active=True
         ),
@@ -404,6 +405,16 @@ async def run_population_simulation(db: AsyncSession) -> Dict[str, Any]:
     print(f"  -> Model Observation Count Before: {obs_before}")
     print(f"  -> LinUCB Predicted Contribution (Context A): INR {probe_pred_before / 100:.2f} ({probe_pred_before} paise)")
 
+    # Backdate opp_probe_before by 20 minutes to provide a realistic historical expired fixture (>15m TTL)
+    probe_before_rec = await db.get(CanonicalDecisionRecord, probe_before_env.decision_id)
+    if probe_before_rec:
+        expired_dt = datetime.now(timezone.utc) - timedelta(minutes=20)
+        probe_before_rec.created_at = expired_dt
+        env_dict = dict(probe_before_rec.decision_envelope_json)
+        env_dict["created_at"] = expired_dt.isoformat()
+        probe_before_rec.decision_envelope_json = env_dict
+        await db.commit()
+
     # Population execution plan:
     # 10 Context A (Purchases)
     # 8 Context B (Non-purchases / payment failed)
@@ -514,6 +525,12 @@ async def run_population_simulation(db: AsyncSession) -> Dict[str, Any]:
                 
                 target_order = await db.get(Order, exec_res.order_id)
 
+                # Dynamically resolve reserved quantities from authoritative Phase 5 execution record
+                p5_rec = await db.get(ExecutionRecord, exec_res.phase5_execution_id) if exec_res.phase5_execution_id else None
+                quantities = p5_rec.audit_metadata.get("quantities", {}) if p5_rec and p5_rec.audit_metadata else {}
+                if not quantities and cluster_info.get("deduct_sku"):
+                    quantities = {cluster_info["deduct_sku"]: 1}
+
                 if cluster_info["purchase"]:
                     # PATH A: SUCCESSFUL PURCHASE (Captured Payment)
                     pmt_id = f"pay_{uuid.uuid4().hex[:10]}"
@@ -529,8 +546,8 @@ async def run_population_simulation(db: AsyncSession) -> Dict[str, Any]:
                     db.add(payment)
                     target_order.status = TransactionState.PAID.value
                     
-                    if cluster_info["deduct_sku"]:
-                        await res_mgr.commit_inventory_deduction(db, {cluster_info["deduct_sku"]: 1})
+                    if quantities:
+                        await res_mgr.commit_inventory_deduction(db, quantities)
                     await db.commit()
 
                     out_req = OutcomeProcessRequest(
@@ -589,9 +606,9 @@ async def run_population_simulation(db: AsyncSession) -> Dict[str, Any]:
                     db.add(payment)
                     target_order.status = TransactionState.FAILED.value
                     
-                    # Release inventory
-                    if cluster_info["deduct_sku"]:
-                        await res_mgr.release_inventory(db, {cluster_info["deduct_sku"]: 1})
+                    # Release inventory dynamically to avoid reservation leakage
+                    if quantities:
+                        await res_mgr.release_inventory(db, quantities)
                     await db.commit()
 
                     out_req = OutcomeProcessRequest(

@@ -40,6 +40,7 @@ class IntentSummary(BaseModel):
     hard_requirements: List[str] = Field(default_factory=list)
     preferences: List[str] = Field(default_factory=list)
     exclusions: List[str] = Field(default_factory=list)
+    raw_prompt: Optional[str] = None
 
 
 class BuyerOfferView(BaseModel):

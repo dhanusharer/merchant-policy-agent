@@ -6,12 +6,13 @@ import { useMerchant } from '@/lib/MerchantContext';
 import { api, formatPaise, formatDateTime, getExecutionStatusBadge, getOutcomeStatusBadge } from '@/lib/api';
 import { DecisionListResponse } from '@/lib/types';
 import { DecisionDetailDrawer } from '@/components/decisions/DecisionDetailDrawer';
+import { NewBuyerRequestModal } from '@/components/decisions/NewBuyerRequestModal';
 
 export default function DecisionsPage() {
   const { currentMerchant } = useMerchant();
   const [data, setData] = useState<DecisionListResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isNewBuyerModalOpen, setIsNewBuyerModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDecisionId, setSelectedDecisionId] = useState<string | null>(null);
 
@@ -35,24 +36,15 @@ export default function DecisionsPage() {
       .finally(() => setLoading(false));
   };
 
-  const handleCreateOpportunity = async () => {
-    setIsCreating(true);
-    try {
-      const res = await api.evaluateDecision(currentMerchant.id);
-      if (res && res.decision_id) {
-        await loadDecisions();
-        setSelectedDecisionId(res.decision_id);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to evaluate buyer opportunity');
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
   useEffect(() => {
     loadDecisions();
   }, [currentMerchant.id, modeFilter, statusFilter, page]);
+
+  // Real-time diversity summary derived strictly from authoritative loaded items
+  const uniqueStrategies = Array.from(new Set(data?.items.map((i) => i.selected_strategy_type) || []));
+  const uniqueModes = Array.from(new Set(data?.items.map((i) => i.decision_mode) || []));
+  const uniqueExecutionStatuses = Array.from(new Set(data?.items.map((i) => i.execution_status) || []));
+  const uniqueOutcomes = Array.from(new Set(data?.items.map((i) => i.outcome_status || 'NOT_REACHED') || []));
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
@@ -75,12 +67,11 @@ export default function DecisionsPage() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={handleCreateOpportunity}
-            disabled={isCreating}
-            className="stripe-btn-primary flex items-center gap-1.5 text-xs bg-[#533afd] hover:bg-[#432ec7] text-white px-3 py-1.5 rounded-lg shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
+            onClick={() => setIsNewBuyerModalOpen(true)}
+            className="stripe-btn-primary flex items-center gap-1.5 text-xs bg-[#533afd] hover:bg-[#432ec7] text-white px-3 py-1.5 rounded-lg shadow-sm transition-colors cursor-pointer"
           >
-            <Sparkles className={`w-3.5 h-3.5 ${isCreating ? 'animate-spin' : ''}`} />
-            <span>{isCreating ? 'Evaluating...' : '+ New Buyer Request'}</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>+ New Buyer Request</span>
           </button>
           <button
             onClick={loadDecisions}
@@ -92,6 +83,55 @@ export default function DecisionsPage() {
           </button>
         </div>
       </div>
+
+      {/* Live Diversity Indicator Bar */}
+      {data?.items && data.items.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-white border border-[#e5edf5] rounded-lg p-3 shadow-xs">
+            <div className="text-[11px] font-medium text-[#64748d] uppercase tracking-wider">Strategies Active</div>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-xl font-semibold text-[#061b31]">{uniqueStrategies.length}</span>
+              <span className="text-[11px] text-[#533afd] font-medium">Commercial Archetypes</span>
+            </div>
+            <div className="mt-1 text-[11px] text-[#64748d] truncate" title={uniqueStrategies.join(', ')}>
+              {uniqueStrategies.join(', ')}
+            </div>
+          </div>
+
+          <div className="bg-white border border-[#e5edf5] rounded-lg p-3 shadow-xs">
+            <div className="text-[11px] font-medium text-[#64748d] uppercase tracking-wider">Decision Modes</div>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-xl font-semibold text-[#061b31]">{uniqueModes.length}</span>
+              <span className="text-[11px] text-[#059669] font-medium">LinUCB Balance</span>
+            </div>
+            <div className="mt-1 text-[11px] text-[#64748d] truncate">
+              {uniqueModes.join(' & ')}
+            </div>
+          </div>
+
+          <div className="bg-white border border-[#e5edf5] rounded-lg p-3 shadow-xs">
+            <div className="text-[11px] font-medium text-[#64748d] uppercase tracking-wider">Execution States</div>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-xl font-semibold text-[#061b31]">{uniqueExecutionStatuses.length}</span>
+              <span className="text-[11px] text-[#d97706] font-medium">Gate Lifecycles</span>
+            </div>
+            <div className="mt-1 text-[11px] text-[#64748d] truncate">
+              Completed, Pending, Rejected
+            </div>
+          </div>
+
+          <div className="bg-white border border-[#e5edf5] rounded-lg p-3 shadow-xs">
+            <div className="text-[11px] font-medium text-[#64748d] uppercase tracking-wider">Commercial Outcomes</div>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-xl font-semibold text-[#061b31]">{uniqueOutcomes.length}</span>
+              <span className="text-[11px] text-[#2563eb] font-medium">Reconciled Streams</span>
+            </div>
+            <div className="mt-1 text-[11px] text-[#64748d] truncate">
+              Paid, Failed, Open
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filter Bar */}
       <div className="stripe-card p-3 flex items-center justify-between gap-4 text-xs">
@@ -125,7 +165,7 @@ export default function DecisionsPage() {
             <option value="ALL">All Execution States</option>
             <option value="EXECUTION_COMPLETED">EXECUTION_COMPLETED</option>
             <option value="PENDING_EXECUTION_GATE">PENDING_EXECUTION_GATE</option>
-            <option value="REJECTED_SAFETY_POLICY">REJECTED_SAFETY_POLICY</option>
+            <option value="EXECUTION_REJECTED">EXECUTION_REJECTED / SAFETY_REJECTED</option>
           </select>
         </div>
 
@@ -279,6 +319,18 @@ export default function DecisionsPage() {
         decisionId={selectedDecisionId}
         merchantId={currentMerchant.id}
         onClose={() => setSelectedDecisionId(null)}
+      />
+
+      {/* New Buyer Request Modal */}
+      <NewBuyerRequestModal
+        isOpen={isNewBuyerModalOpen}
+        merchantId={currentMerchant.id}
+        onClose={() => setIsNewBuyerModalOpen(false)}
+        onDecisionCreated={() => loadDecisions()}
+        onOpenFullTrace={(decisionId) => {
+          setIsNewBuyerModalOpen(false);
+          setSelectedDecisionId(decisionId);
+        }}
       />
     </div>
   );

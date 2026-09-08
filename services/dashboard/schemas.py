@@ -164,6 +164,19 @@ class DecisionCandidateDTO(BaseModel):
     is_selected: bool
 
 
+class IntentSummaryDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    category: Optional[str] = "General"
+    use_case: Optional[str] = None
+    quantity: Optional[int] = 1
+    budget_paise: Optional[int] = None
+    hard_requirements: List[str] = Field(default_factory=list)
+    preferences: List[str] = Field(default_factory=list)
+    exclusions: List[str] = Field(default_factory=list)
+    raw_prompt: Optional[str] = None
+
+
 class DecisionDetailDTO(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -174,6 +187,7 @@ class DecisionDetailDTO(BaseModel):
     buyer_context_key: str
     created_at: datetime
     raw_prompt: Optional[str] = None
+    intent_summary: Optional[IntentSummaryDTO] = None
 
     # Complete Identity Trace Chain
     authorization_id: Optional[str] = None

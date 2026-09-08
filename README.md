@@ -4,9 +4,10 @@
 ### *Autonomous Commercial Intelligence for the Agentic Commerce Era*
 
 [![Razorpay AI Buildathon 2026](https://img.shields.io/badge/Razorpay_AI_Buildathon_2026-Track_01:_Agentic_Commerce-0C2340?style=for-the-badge&logo=razorpay&logoColor=3395FF)](https://razorpay.com)
-[![Tests Passing](https://img.shields.io/badge/Tests-911%20Passed%20(100%25)-00C853?style=for-the-badge&logo=pytest&logoColor=white)](docs/verification.md)
-[![Unit Tests](https://img.shields.io/badge/Unit_Tests-546%20Hermetic-00E676?style=for-the-badge&logo=pytest&logoColor=white)](docs/verification.md)
-[![Integration Tests](https://img.shields.io/badge/Integration_Tests-365%20Passed-00B0FF?style=for-the-badge&logo=pytest&logoColor=white)](docs/verification.md)
+[![Tests Passing](https://img.shields.io/badge/Tests-942%20Passed%20(100%25)-00C853?style=for-the-badge&logo=pytest&logoColor=white)](docs/verification.md)
+[![Unit Tests](https://img.shields.io/badge/Unit_Tests-562%20Hermetic-00E676?style=for-the-badge&logo=pytest&logoColor=white)](docs/verification.md)
+[![Integration Tests](https://img.shields.io/badge/Integration_Tests-380%20Passed-00B0FF?style=for-the-badge&logo=pytest&logoColor=white)](docs/verification.md)
+[![MCP 2026](https://img.shields.io/badge/MCP-2026_Compliant-blueviolet?style=for-the-badge&logo=anthropic&logoColor=white)](docs/mcp-specification.md)
 [![Release Candidate](https://img.shields.io/badge/Release_Candidate-v1.0.0--rc-651FFF?style=for-the-badge&logo=git&logoColor=white)](https://github.com/dhanusharer/merchant-policy-agent)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -14,7 +15,7 @@
 
 <br/>
 
-**Enables merchants to negotiate and sell profitably to autonomous AI buyer agents — validated by deterministic guardrails and closed-loop Razorpay financial truth.**
+**Enables merchants to negotiate and sell profitably to autonomous AI buyer agents — validated by deterministic guardrails, Model Context Protocol (MCP), and closed-loop Razorpay financial truth.**
 
 ```text
 LLM Proposes ➔ Code Validates ➔ Code Executes ➔ Razorpay Reports ➔ Agent Learns
@@ -24,6 +25,7 @@ LLM Proposes ➔ Code Validates ➔ Code Executes ➔ Razorpay Reports ➔ Agent
 
 [Executive Summary](#-executive-summary) •
 [Core Invariants](#-golden-architectural-invariants) •
+[MCP AI Buyer](#-external-ai-buyer--mcp-commerce-interface) •
 [Architecture](#-system-architecture) •
 [Quickstart (60s)](#-quickstart--verification) •
 [Razorpay Closed Loop](#-razorpay-closed-loop-integration) •
@@ -63,6 +65,69 @@ The **Merchant Policy Agent** solves this through a strictly decoupled, dual-eng
 | **3** | **Single-Use Execution Tokens** | HMAC-SHA256 tokens bound to `decision_id`, `opportunity_id`, amount, and expiration. | Replay attacks, front-running, and price tampering. |
 | **4** | **Authoritative Payment Ground Truth** | Only cryptographically verified Razorpay webhooks (`payment.captured`) trigger learning. | Learning from uncollected revenue or simulated signals. |
 | **5** | **Strict Multi-Tenant Isolation** | All queries enforce tenant foreign keys; models are trained per-merchant without cross-tenant leakage. | Competitor policy leakage and data poisoning. |
+| **6** | **Zero Direct AI Authority & Firewall** | External AI buyers can only REQUEST; code AUTHORIZES. Unit economics (COGS, margins) are strictly concealed. | Exploitative pricing extraction and unauthorized merchant balance drains. |
+
+---
+
+## 🔌 External AI Buyer / MCP Commerce Interface
+
+The system implements the **Model Context Protocol (MCP 2026 specification)**, transforming the Merchant Policy Agent into a native peer for external autonomous AI buyers (such as **Claude Desktop**, procurement agents, or multi-agent shopping swarms).
+
+### Architectural Boundary: The Thin Protocol Adapter
+
+```text
+External AI Buyer (Claude Desktop / Shopping Bot)
+                      ↓
+       Model Context Protocol (JSON-RPC 2.0 / SSE / Stdio)
+                      ↓
+          Buyer Response Firewall (Conceals COGS & Margins)
+                      ↓
+     Authoritative Runtime Services (Commerce, Intent, Decision, Boundary, Orders)
+                      ↓
+         Razorpay Test Mode Order (Integer Paise Execution)
+```
+
+The MCP layer is strictly a **thin protocol adapter**—it contains **zero duplicate business logic, zero pricing formulas, and zero direct execution privileges**. All operations delegate directly to existing authoritative services.
+
+### The 6 Conceptual MCP Tools
+
+| Tool | Category | Invariant Enforced |
+| :--- | :--- | :--- |
+| `search_catalog` | Discovery | Filters active inventory; returns buyer-safe product cards. |
+| `get_product` | Discovery | Wholesale COGS / cost strictly stripped by egress firewall. |
+| `evaluate_buyer_intent` | Negotiation | Natural language parsed into hard constraints; scrubbed of prompt injections. |
+| `get_offer` | Pricing & Policy | Evaluates LinUCB multi-armed bandit; enforces 25% margin floor and 20% discount cap. |
+| `request_checkout` | Execution | Atomically locks stock `FOR UPDATE`; generates signed Razorpay Test Order. |
+| `get_order_status` | Post-Purchase | Scoped strictly to merchant tenant; returns verified payment & tracking status. |
+
+### Read-Only Resources
+
+- `merchant://capabilities`: Merchant policy capabilities, supported currencies (INR), and transport versions.
+- `merchant://catalog`: Real-time public catalog snapshot formatted as buyer-safe markdown tables.
+
+### Claude Desktop Integration
+
+To connect Claude Desktop to your local Merchant Policy Agent instance, add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "merchant-policy-agent": {
+      "command": "python",
+      "args": ["-m", "services.mcp.server"],
+      "cwd": "C:\\path\\to\\merchant-policy-agent",
+      "env": {
+        "MERCHANT_ID": "merch_atlas_travel",
+        "PYTHONPATH": "."
+      }
+    }
+  }
+}
+```
+
+Or connect over HTTP / Server-Sent Events (SSE) when running FastAPI:
+- **JSON-RPC Endpoint**: `POST http://127.0.0.1:8000/api/v1/mcp/jsonrpc`
+- **SSE Stream**: `GET http://127.0.0.1:8000/api/v1/mcp/sse`
 
 ---
 
@@ -83,14 +148,17 @@ pip install -e ".[dev]"
 # 3. Initialize configuration
 cp .env.example .env
 
-# 4. Run full hermetic unit test suite (546 tests, 0 failures, 100% in-memory)
+# 4. Run full hermetic unit test suite (562 tests, 0 failures, 100% in-memory)
 pytest tests/unit -v --tb=short
 
-# 5. Run full integration test suite (365 tests)
+# 5. Run full integration test suite (380 tests)
 pytest tests/integration -q
+
+# 6. Run canonical autonomous AI buyer MCP journey demo
+python scripts/run_mcp_buyer_demo.py
 ```
 
-**Total automated tests passing:** **911 tests** (546 unit + 365 integration) in ~2 minutes.
+**Total automated tests passing:** **942 tests** (562 unit + 380 integration) in ~2 minutes.
 
 ---
 
@@ -185,7 +253,8 @@ To maintain clarity and accessibility, verbose phase-by-phase iteration logs hav
 | Document | Purpose |
 | :--- | :--- |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Complete system architecture, execution/learning planes, and data contracts. |
-| [docs/verification.md](docs/verification.md) | Clean-room reproduction, test suite breakdown (911 tests), and hermeticity guarantees. |
+| [docs/mcp-specification.md](docs/mcp-specification.md) | Model Context Protocol (MCP 2026) specification, tools, firewall, and Claude integration. |
+| [docs/verification.md](docs/verification.md) | Clean-room reproduction, test suite breakdown (942 tests), and hermeticity guarantees. |
 | [docs/economics-model.md](docs/economics-model.md) | Mathematical formulation of integer paise arithmetic, margin floors, and contribution. |
 | [docs/security.md](docs/security.md) | Single-use execution token specs, webhook signature validation, and tenant isolation. |
 | [docs/failure-recovery.md](docs/failure-recovery.md) | Dead-letter queues, idempotent retry loops, and out-of-order webhook reconciliation. |

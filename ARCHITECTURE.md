@@ -2,7 +2,7 @@
 
 > **Merchant Policy Agent**: Autonomous Commercial Policy Learning for the Agentic Commerce Era  
 > **Target Framework**: Razorpay AI Buildathon 2026 — Track 01: Agentic Commerce  
-> **Release Candidate**: `v1.0.0-rc` | **Authoritative Parent Tests**: 926 Passed (100%) | **Adversarial Benchmarks**: 49/49 Passed (100%)
+> **Release Candidate**: `v1.0.0-rc` | **Authoritative Parent Tests**: 942 Passed (100%) | **Adversarial Benchmarks**: 49/49 Passed (100%)
 
 ---
 
@@ -203,6 +203,89 @@ sequenceDiagram
 
 ---
 
+## 🤖 External AI Buyer / MCP Commerce Interface (MCP 2026)
+
+To enable external AI agents (e.g., Claude Desktop, autonomous procurement agents, personal AI shoppers) to consume the merchant's commercial policies safely, the system provides a **Thin Protocol Adapter** compliant with the Model Context Protocol (MCP 2026 specification).
+
+```mermaid
+flowchart TD
+    subgraph ExternalBuyer["🤖 External AI Buyer Agent (Claude Desktop / Procurement Bot)"]
+        direction TB
+        AgentMind["AI Buyer Reasoning Engine"]
+    end
+
+    subgraph MCPInterface["🔌 MCP Commerce Adapter (services/mcp/)"]
+        direction TB
+        subgraph Transports["Transports"]
+            StdioTransport["Stdio Transport<br/>(python -m services.mcp.server)"]
+            HttpSseTransport["FastMCP HTTP / SSE<br/>(/api/v1/mcp/jsonrpc, /api/v1/mcp/sse)"]
+        end
+        subgraph SecurityFirewall["Buyer Security Perimeter"]
+            AuthGuard["Agent Capability & Tenant Scope Validator<br/>(check_capability, validate_tenant_scope)"]
+            Firewall["BuyerResponseFirewall<br/>• COGS & Unit Economics Stripped<br/>• LinUCB Scores & Latents Filtered<br/>• Integer Paise Preserved"]
+        end
+        subgraph Tools6["Official MCP Tool Matrix"]
+            T1["search_catalog"]
+            T2["get_product"]
+            T3["evaluate_buyer_intent"]
+            T4["get_offer"]
+            T5["request_checkout"]
+            T6["get_order_status"]
+        end
+        subgraph Resources2["Read-Only Resources"]
+            R1["merchant://capabilities"]
+            R2["merchant://catalog"]
+        end
+    end
+
+    subgraph CoreServices["⚙️ Authoritative Runtime Services"]
+        CS["CommerceService"]
+        IE["IntentExtractor"]
+        CDR["CanonicalDecisionRuntime"]
+        DEB["DecisionExecutionBoundaryService"]
+        OS["OrderService"]
+    end
+
+    subgraph Rzp["💳 Razorpay Payment Gateway (Test Mode)"]
+        RzpOrd["Official Razorpay Order (ord_...)"]
+    end
+
+    AgentMind <--> Transports
+    Transports --> AuthGuard
+    AuthGuard --> Tools6
+    AuthGuard --> Resources2
+    T1 & T2 --> CS
+    T3 --> IE
+    T4 --> CDR
+    T5 --> DEB
+    T6 --> OS
+    DEB --> RzpOrd
+    CS & IE & CDR & DEB & OS --> Firewall
+    Firewall --> Transports
+```
+
+### The 6 Conceptual MCP Tools & Authoritative Mapping
+
+| MCP Tool Name | Description | Backing Service | Deterministic Invariant Preserved |
+| :--- | :--- | :--- | :--- |
+| `search_catalog` | Search active merchant products with category/budget filters | `CommerceService` | Real-time stock audit; excludes inactive items. |
+| `get_product` | Retrieve sanitized product metadata and public pricing | `CommerceService` | Wholesale COGS / cost strictly stripped. |
+| `evaluate_buyer_intent` | Structure natural language buyer prompt into constraints | `IntentExtractor` | Scrubbed of prompt injection / unicode exploits. |
+| `get_offer` | Generate LinUCB-ranked commercial offer for the buyer | `CanonicalDecisionRuntime` | Margin floor ($\ge 25\%$), discount cap ($\le 20\%$), reserve `NO_OFFER`. |
+| `request_checkout` | Authorize checkout and lock inventory via Razorpay | `DecisionExecutionBoundaryService` | Stock re-verified `FOR UPDATE`; Razorpay Test Mode order generated. |
+| `get_order_status` | Query buyer-safe payment lifecycle and fulfillment state | `OrderService` | Strict merchant tenant scoping; zero cross-tenant snooping. |
+
+### The Buyer Response Firewall
+
+The **Buyer Response Firewall** (`services/mcp/firewall.py`) acts as a mandatory egress security boundary between the merchant's internal economic engines and the untrusted external AI buyer:
+
+- **Wholesale COGS Concealment**: Strips `cost_paise`, item-level cost baselines, and supplier margins.
+- **Economic Invariant Protection**: Strips `gross_margin_percent`, `predicted_contribution_paise`, and target profit thresholds.
+- **Model Security**: Strips bandit covariance matrices ($A$), bias vectors ($b$), LinUCB exploration bonuses ($\alpha \sqrt{x^T A^{-1} x}$), and 19-dimensional feature vectors ($x$).
+- **Anti-Hallucination Checkout**: Returns an authoritative, cryptographic HMAC authorization token and a Razorpay `order_id` in Test Mode. The buyer agent has **zero direct financial authority** and cannot manipulate the final payable amount.
+
+---
+
 ## 🔒 Security & Multi-Tenant Isolation Architecture
 
 ```mermaid
@@ -299,7 +382,7 @@ stateDiagram-v2
 razopay_new/
 ├── apps/
 │   ├── api/                     # FastAPI Application Layer
-│   │   ├── routers/             # Endpoint routing (decisions, orders, webhooks, learning)
+│   │   ├── routers/             # Endpoint routing (decisions, orders, webhooks, learning, mcp)
 │   │   └── main.py              # Application lifecycle and middleware
 │   └── web/                     # Next.js 16 Merchant AI Control Center
 │       ├── src/app/             # Pages: Overview (/), Decisions (/decisions), Policies (/policies), Learning (/learning), Activity (/activity)
@@ -307,6 +390,7 @@ razopay_new/
 │       └── e2e/                 # Playwright E2E browser test suite (21 tests)
 ├── domain/                      # Frozen domain contracts, schemas, and SQLAlchemy models
 ├── services/                    # Core decoupled subsystems
+│   ├── mcp/                     # Phase 13: External AI Buyer MCP Commerce Interface & Firewall
 │   ├── intent/                  # Intent normalization and extraction
 │   ├── commerce/                # Catalog, COGS, and inventory management
 │   ├── policy/                  # LLM advisory agent & deterministic safety validator
@@ -320,10 +404,10 @@ razopay_new/
 │   ├── exploration/             # Bounded exploration budget tracking
 │   ├── lifecycle/               # Candidate quarantine & evidence-gated promotion
 │   └── dashboard/               # Semantic telemetry aggregation & audit projection
-├── scripts/                     # Seed data & population simulation harnesses
-├── tests/                       # 926 Automated parent tests
-│   ├── unit/                    # 541 Unit tests (100% passing)
-│   └── integration/             # 364 Integration tests (100% passing)
-├── docs/                        # Specifications, reports, and architecture diagrams
+├── scripts/                     # Seed data, population simulation harnesses, & run_mcp_buyer_demo.py
+├── tests/                       # 942 Automated parent tests
+│   ├── unit/                    # 562 Unit tests (100% passing)
+│   └── integration/             # 380 Integration tests (100% passing)
+├── docs/                        # Specifications, reports, mcp-specification.md, and architecture diagrams
 └── submission/                  # Hackathon submission bundle, benchmarks, evidence
 ```

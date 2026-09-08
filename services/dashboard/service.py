@@ -12,7 +12,7 @@ All domain mutations pass through existing authoritative services (Phase 8.8, Ph
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, and_
+from sqlalchemy import select, func, desc, and_, or_
 import structlog
 
 from domain.models import (
@@ -46,6 +46,7 @@ from services.dashboard.schemas import (
     DecisionBuyerOfferViewDTO,
     DecisionMerchantEvaluationDTO,
     DecisionCandidateDTO,
+    IntentSummaryDTO,
     DecisionDetailDTO,
     DecisionListResponseDTO,
     PolicyVersionItemDTO,
@@ -331,9 +332,42 @@ class DecisionViewService:
         if mode:
             query = query.where(CanonicalDecisionRecord.decision_mode == mode.upper())
         if execution_status:
-            query = query.where(DecisionExecutionRecord.boundary_status == execution_status)
+            stat_upper = execution_status.upper()
+            if stat_upper == "PENDING_EXECUTION_GATE":
+                query = query.where(
+                    or_(
+                        DecisionExecutionRecord.boundary_status.is_(None),
+                        DecisionExecutionRecord.boundary_status == "PENDING_EXECUTION_GATE"
+                    )
+                )
+            elif stat_upper in ("EXECUTION_REJECTED", "SAFETY_REJECTED", "REJECTED", "REJECTED_SAFETY_POLICY"):
+                query = query.where(
+                    DecisionExecutionRecord.boundary_status.in_(["EXECUTION_REJECTED", "SAFETY_REJECTED"])
+                )
+            else:
+                query = query.where(DecisionExecutionRecord.boundary_status == execution_status)
 
         count_stmt = select(func.count(CanonicalDecisionRecord.id)).where(CanonicalDecisionRecord.merchant_id == merchant_id)
+        if execution_status:
+            count_stmt = select(func.count(CanonicalDecisionRecord.id)).outerjoin(
+                DecisionExecutionRecord,
+                DecisionExecutionRecord.decision_id == CanonicalDecisionRecord.id
+            ).where(CanonicalDecisionRecord.merchant_id == merchant_id)
+            stat_upper = execution_status.upper()
+            if stat_upper == "PENDING_EXECUTION_GATE":
+                count_stmt = count_stmt.where(
+                    or_(
+                        DecisionExecutionRecord.boundary_status.is_(None),
+                        DecisionExecutionRecord.boundary_status == "PENDING_EXECUTION_GATE"
+                    )
+                )
+            elif stat_upper in ("EXECUTION_REJECTED", "SAFETY_REJECTED", "REJECTED", "REJECTED_SAFETY_POLICY"):
+                count_stmt = count_stmt.where(
+                    DecisionExecutionRecord.boundary_status.in_(["EXECUTION_REJECTED", "SAFETY_REJECTED"])
+                )
+            else:
+                count_stmt = count_stmt.where(DecisionExecutionRecord.boundary_status == execution_status)
+
         if mode:
             count_stmt = count_stmt.where(CanonicalDecisionRecord.decision_mode == mode.upper())
         total = (await db.execute(count_stmt)).scalar_one()
@@ -456,6 +490,23 @@ class DecisionViewService:
             )
             applied_obs_id = (await db.execute(amo_stmt)).scalar_one_or_none()
 
+        intent_raw = envelope_data.get("intent_summary", {})
+        intent_summary_dto = IntentSummaryDTO(
+            category=intent_raw.get("category", "General"),
+            use_case=intent_raw.get("use_case"),
+            quantity=intent_raw.get("quantity", 1),
+            budget_paise=intent_raw.get("budget_paise"),
+            hard_requirements=intent_raw.get("hard_requirements", []),
+            preferences=intent_raw.get("preferences", []),
+            exclusions=intent_raw.get("exclusions", []),
+            raw_prompt=intent_raw.get("raw_prompt") or envelope_data.get("raw_prompt")
+        ) if intent_raw else None
+
+        raw_prompt_val = (
+            envelope_data.get("intent_summary", {}).get("raw_prompt")
+            or envelope_data.get("raw_prompt")
+        )
+
         return DecisionDetailDTO(
             decision_id=dec_rec.id,
             request_id=req_id,
@@ -463,7 +514,8 @@ class DecisionViewService:
             opportunity_id=dec_rec.opportunity_id,
             buyer_context_key=dec_rec.buyer_context_key,
             created_at=dec_rec.created_at if (dec_rec.created_at and dec_rec.created_at.tzinfo) else dec_rec.created_at.replace(tzinfo=timezone.utc) if dec_rec.created_at else None,
-            raw_prompt=envelope_data.get("intent_summary", {}).get("raw_prompt"),
+            raw_prompt=raw_prompt_val,
+            intent_summary=intent_summary_dto,
             authorization_id=exec_rec.authorization_id if exec_rec else None,
             execution_id=exec_rec.id if exec_rec else None,
             order_id=order_id,

@@ -13,7 +13,7 @@ from apps.api.routers import (
     health, orders, webhooks, merchants, intent, policy, execution,
     buyer_lab, experiments, learning, reward, memory, learning_model, policy_selection,
     policy_safety, policy_exploration, policy_lifecycle, evaluation, decisions, decision_execution, outcomes,
-    observability, dashboard
+    observability, dashboard, mcp
 )
 from fastapi.responses import FileResponse
 
@@ -72,6 +72,7 @@ app.include_router(decisions.router)
 app.include_router(decision_execution.router)
 app.include_router(outcomes.router)
 app.include_router(dashboard.router)
+app.include_router(mcp.router)
 
 @app.get("/test-checkout", response_class=FileResponse)
 async def test_checkout_page():

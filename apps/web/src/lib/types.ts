@@ -109,6 +109,17 @@ export interface DecisionCandidate {
   is_selected: boolean;
 }
 
+export interface IntentSummary {
+  category?: string;
+  use_case?: string;
+  quantity?: number;
+  budget_paise?: number;
+  hard_requirements?: string[];
+  preferences?: string[];
+  exclusions?: string[];
+  raw_prompt?: string | null;
+}
+
 export interface DecisionDetail {
   decision_id: string;
   request_id?: string | null;
@@ -117,6 +128,7 @@ export interface DecisionDetail {
   buyer_context_key: string;
   created_at: string;
   raw_prompt?: string | null;
+  intent_summary?: IntentSummary | null;
   authorization_id?: string | null;
   execution_id?: string | null;
   order_id?: string | null;

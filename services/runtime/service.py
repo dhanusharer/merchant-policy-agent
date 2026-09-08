@@ -262,7 +262,8 @@ class CanonicalDecisionRuntime:
             budget_paise=budget_val,
             hard_requirements=[f"{r.attribute} {r.operator.value if hasattr(r.operator, 'value') else r.operator} {r.value}" for r in intent.requirements],
             preferences=[f"{p.attribute}: {p.preference}" for p in intent.preferences],
-            exclusions=[f"{e.attribute}: {e.excluded_value}" for e in intent.exclusions]
+            exclusions=[f"{e.attribute}: {e.excluded_value}" for e in intent.exclusions],
+            raw_prompt=request.raw_prompt
         )
 
         # 14. Safety Audit Details (Exploration Telemetry only, NEVER execution authorization)

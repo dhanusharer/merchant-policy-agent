@@ -35,7 +35,7 @@ test.describe('AI Decisions Ledger Layout & Responsiveness', () => {
     expect(isPageOverflowing).toBe(false);
 
     // Verify Proposed Price is visible and formatted
-    await expect(page.locator('tbody').locator('text=₹2,999').first()).toBeVisible();
+    await expect(page.locator('tbody').locator('text=/₹[\\d,]+/').first()).toBeVisible();
 
     // Verify Execution status badge is visible in table body
     await expect(page.locator('tbody').getByText('PENDING_EXECUTION_GATE').first()).toBeVisible();

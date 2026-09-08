@@ -90,7 +90,7 @@ async def test_demo_reset_repeatable_no_duplicates(db_session):
         select(func.count(MerchantPolicyVersionRecord.id)).where(MerchantPolicyVersionRecord.merchant_id == "merch_atlas_travel")
     )).scalar_one()
 
-    assert prod_cnt_1 == 4
+    assert prod_cnt_1 == 5
     assert pol_cnt_1 == 2  # Baseline NO_OFFER + Candidate BUNDLE
 
     # Second reset & seed

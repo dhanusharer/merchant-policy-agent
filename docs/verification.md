@@ -10,15 +10,15 @@ The repository enforces **clean-room reproducibility** with 100% hermetic unit t
 
 | Test Suite | File Count | Test Count | Pass Rate | Dependencies / Network |
 | :--- | :--- | :--- | :--- | :--- |
-| **Unit Test Suite** (`tests/unit/`) | 33 files | **546 tests** | **100% PASS** | Zero network, in-memory SQLite (`:memory:`), fully mocked gateway |
-| **Integration Test Suite** (`tests/integration/`) | 27 files | **365 tests** | **100% PASS** | Hermetic test mode database, zero live secrets required |
-| **Total Automated Tests** | **60 files** | **911 tests** | **100% PASS** | Execution time: ~2 minutes |
+| **Unit Test Suite** (`tests/unit/`) | 35 files | **562 tests** | **100% PASS** | Zero network, in-memory SQLite (`:memory:`), fully mocked gateway |
+| **Integration Test Suite** (`tests/integration/`) | 29 files | **380 tests** | **100% PASS** | Hermetic test mode database, zero live secrets required |
+| **Total Automated Tests** | **64 files** | **942 tests** | **100% PASS** | Execution time: ~2 minutes |
 
 ---
 
 ## ⚡ Clean-Room Reproduction (Under 60 Seconds)
 
-To reproduce all 911 passing tests from a fresh clone:
+To reproduce all 942 passing tests from a fresh clone:
 
 ```powershell
 # 1. Clone repository
@@ -33,11 +33,14 @@ pip install -e ".[dev]"
 # 3. Copy environment configuration
 cp .env.example .env
 
-# 4. Run the hermetic unit tests (546 tests)
+# 4. Run the hermetic unit tests (562 tests)
 pytest tests/unit -v --tb=short
 
-# 5. Run the integration test suite (365 tests)
+# 5. Run the integration test suite (380 tests)
 pytest tests/integration -q
+
+# 6. Run the canonical MCP AI buyer journey demo
+python scripts/run_mcp_buyer_demo.py
 ```
 
 ---
@@ -57,6 +60,16 @@ The Policy Agent provides dual-engine candidate generation (`services/policy/age
 - **LLM Mode (Google Gemini)**: Formats merchant catalog, inventory, and buyer intent into a strict JSON schema prompt and queries Gemini (`gemini-1.5-flash`).
 - **Deterministic Heuristic Fallback**: If `GEMINI_API_KEY` is absent or the API request times out (>3.5s budget), the agent automatically falls back to deterministic heuristic generation (`COMPLEMENTARY_BUNDLE`, `BOUNDED_DISCOUNT`, `SINGLE_PRODUCT`, `NO_OFFER`).
 - **Deterministic Validation**: Both LLM-proposed and heuristic candidates are validated against identical deterministic guardrails (margin floors, discount ceilings, real-time inventory).
+
+---
+
+## 🔌 Phase 13: External AI Buyer MCP Test Verification
+
+Phase 13 tests certify the Model Context Protocol interface:
+- `tests/unit/test_mcp_tools.py` (9 tests): Hermetic validation of all 6 conceptual MCP tools, input schema constraints, and error mappings.
+- `tests/unit/test_mcp_security.py` (7 tests): Adversarial validation of `BuyerResponseFirewall` (zero COGS leakage), cross-tenant isolation, capability guard rejection, replay prevention, and stale TTL locks.
+- `tests/integration/test_mcp_end_to_end.py` (3 tests): Full JSON-RPC 2.0 dispatch, SSE streaming endpoint, and lifecycle session orchestration.
+- `tests/integration/test_mcp_benchmark.py` (12 tests): Canonical benchmark matrix validating `MCP-01` through `MCP-12` against the 11-stage decision architecture.
 
 Test verification file:
 - `tests/unit/test_policy_llm_agent.py` validates prompt structure, structured JSON parsing, dual-engine fallback, and downstream guardrails.

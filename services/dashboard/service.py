@@ -557,6 +557,7 @@ class PolicyViewService:
 
         # Active Policy
         active_summary = None
+        now_utc = datetime.now(timezone.utc)
         try:
             active_pol = await PolicyLifecycleService.get_active_policy(db, merchant_id)
             if active_pol and active_pol.policy_id:
@@ -567,7 +568,10 @@ class PolicyViewService:
                 ).where(
                     and_(
                         PolicyMemoryRecord.merchant_id == merchant_id,
-                        PolicyMemoryRecord.policy_id == active_pol.policy_id
+                        PolicyMemoryRecord.policy_id == active_pol.policy_id,
+                        PolicyMemoryRecord.learning_eligible == True,
+                        PolicyMemoryRecord.is_current == True,
+                        PolicyMemoryRecord.observed_at <= now_utc
                     )
                 )
                 pol_mem_res = (await db.execute(pol_mem_stmt)).one()
@@ -600,14 +604,17 @@ class PolicyViewService:
             p_id = v.get("policy_id", "")
             is_act = bool(active_summary and active_summary.policy_id == p_id)
 
-            # Strictly policy-specific evidence from PolicyMemoryRecord
+            # Strictly policy-specific evidence from PolicyMemoryRecord with current-effective semantics
             pol_mem_stmt = select(
                 func.count(PolicyMemoryRecord.id),
                 func.coalesce(func.sum(PolicyMemoryRecord.reward_contribution_paise), 0)
             ).where(
                 and_(
                     PolicyMemoryRecord.merchant_id == merchant_id,
-                    PolicyMemoryRecord.policy_id == p_id
+                    PolicyMemoryRecord.policy_id == p_id,
+                    PolicyMemoryRecord.learning_eligible == True,
+                    PolicyMemoryRecord.is_current == True,
+                    PolicyMemoryRecord.observed_at <= now_utc
                 )
             )
             pol_mem_res = (await db.execute(pol_mem_stmt)).one()

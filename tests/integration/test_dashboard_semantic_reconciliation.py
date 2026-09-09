@@ -283,10 +283,23 @@ async def test_trace_reconstruction_stopping_points(live_db):
     assert trace_no_offer.trace_status == TraceStageStatus.STOPPED_AT_TRANSACTION.value
 
     # Successful purchase reaches complete lineage
+    stmt_succ_opp = (
+        select(OutcomeFeedbackRecord.opportunity_id)
+        .where(
+            and_(
+                OutcomeFeedbackRecord.merchant_id == merchant_id,
+                OutcomeFeedbackRecord.outcome_status == "PAYMENT_SUCCESS"
+            )
+        )
+        .limit(1)
+    )
+    opp_success = (await live_db.execute(stmt_succ_opp)).scalar()
+    assert opp_success is not None
+
     trace_success = await TraceReconstructionService.reconstruct_opportunity(
         db=live_db,
         merchant_id=merchant_id,
-        opportunity_id="opp_atlas_travel_context_a_001"
+        opportunity_id=opp_success
     )
     assert "9.1_DECISION" in trace_success.stages_present
     assert "9.2_EXECUTION" in trace_success.stages_present

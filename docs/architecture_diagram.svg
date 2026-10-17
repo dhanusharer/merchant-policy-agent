@@ -116,8 +116,8 @@
       <text x="17" y="26" font-size="11" font-weight="700" fill="#ffffff">5-6</text>
       <text x="48" y="27" font-size="13" font-weight="700" fill="#e2e8f0">Deterministic Safety Validator &amp; LinUCB Selector</text>
       <text x="490" y="27" font-size="11" font-weight="600" fill="#34d399">9.2ms</text>
-      <text x="14" y="52" font-size="11" fill="#a7f3d0">• Margin Floor &ge; 25.00% • Discount Ceiling &le; 20.00% • Stock &gt; 0 • Integer Math</text>
-      <text x="14" y="68" font-size="10" font-family="monospace" fill="#94a3b8">LinUCB 19-dim Context Vector x ➔ UCB = &theta;^T x + &alpha;&radic;(x^T A^-1 x) (Budget &le; 15%)</text>
+      <text x="14" y="52" font-size="11" fill="#a7f3d0">• Margin Floor ≥ 25.00% • Discount Ceiling ≤ 20.00% • Stock &gt; 0 • Integer Math</text>
+      <text x="14" y="68" font-size="10" font-family="monospace" fill="#94a3b8">LinUCB 19-dim Context Vector x ➔ UCB = θ^T x + α√(x^T A^-1 x) (Budget ≤ 15%)</text>
     </g>
 
     <!-- Arrow Down -->
@@ -217,7 +217,7 @@
     <g transform="translate(20, 228)">
       <rect width="600" height="82" rx="8" fill="#111827" stroke="#4f46e5" stroke-width="1"/>
       <text x="14" y="24" font-size="12" font-weight="700" fill="#c7d2fe">Disjoint LinUCB Ridge Regression Online Update</text>
-      <text x="14" y="44" font-size="11" font-family="monospace" fill="#a5b4fc">A &larr; A + x x^T  (Covariance 19x19)  |  b &larr; b + r x  (Reward Vector)  |  &theta; = A^-1 b</text>
+      <text x="14" y="44" font-size="11" font-family="monospace" fill="#a5b4fc">A ← A + x x^T  (Covariance 19x19)  |  b ← b + r x  (Reward Vector)  |  θ = A^-1 b</text>
       <text x="14" y="64" font-size="11" fill="#94a3b8">• Anti-Temporal Leakage: Ingests only settled events (t_event &lt; t_decision)</text>
       <text x="14" y="78" font-size="10" font-family="monospace" fill="#64748b">Persists: LearningEvidenceRecord &amp; PolicyMemoryRecord</text>
     </g>
@@ -252,9 +252,9 @@
       <rect width="420" height="154" rx="8" fill="#042f2e" stroke="#115e59" stroke-width="1"/>
       <text x="14" y="24" font-size="13" font-weight="700" fill="#a7f3d0">PolicyLifecycleService &amp; Promotion Gating</text>
       <text x="14" y="46" font-size="11" fill="#cbd5e1">• Candidate Quarantine Registry (Sandbox Evaluation)</text>
-      <text x="14" y="66" font-size="11" font-weight="600" fill="#facc15">• Rule: Learning &ne; Policy Promotion</text>
-      <text x="14" y="86" font-size="11" fill="#cbd5e1">• Statistical Gate: Sample Size N &ge; 100 Verified Orders</text>
-      <text x="14" y="106" font-size="11" fill="#cbd5e1">• Economic Gate: &Delta;Contribution Margin &gt; 0 vs Baseline</text>
+      <text x="14" y="66" font-size="11" font-weight="600" fill="#facc15">• Rule: Learning ≠ Policy Promotion</text>
+      <text x="14" y="86" font-size="11" fill="#cbd5e1">• Statistical Gate: Sample Size N ≥ 100 Verified Orders</text>
+      <text x="14" y="106" font-size="11" fill="#cbd5e1">• Economic Gate: ΔContribution Margin &gt; 0 vs Baseline</text>
       <text x="14" y="126" font-size="11" fill="#cbd5e1">• Safety Gate: Zero margin or stock violations</text>
       <text x="14" y="144" font-size="10" font-family="monospace" fill="#5eead4">Active Baseline Switch &amp; 1-Click Rollback</text>
     </g>
@@ -274,7 +274,7 @@
 
   <!-- Inter-plane Feedback Arrow: Learning to Execution Selection -->
   <path d="M 700 580 L 650 580 L 650 318 L 576 318" fill="none" stroke="#818cf8" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowIndigo)"/>
-  <text x="635" y="460" font-size="10" font-family="monospace" fill="#818cf8" transform="rotate(-90 635 460)">Online Weights &theta;</text>
+  <text x="635" y="460" font-size="10" font-family="monospace" fill="#818cf8" transform="rotate(-90 635 460)">Online Weights θ</text>
 
   <!-- Inter-plane Feedback Arrow: Governance to Execution Safety -->
   <path d="M 644 680 L 644 620 L 300 620 L 300 494" fill="none" stroke="#34d399" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowEmerald)"/>

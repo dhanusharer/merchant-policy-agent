@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   MessageSquare,
   ShieldAlert,
@@ -11,7 +12,8 @@ import {
   AlertTriangle,
   RotateCcw,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  ArrowRight
 } from 'lucide-react';
 import { useMerchant } from '@/lib/MerchantContext';
 import { api, formatPaise } from '@/lib/api';
@@ -104,7 +106,7 @@ export default function SalesAgentPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="w-full px-2 sm:px-4 md:px-6 py-4 space-y-6">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#d8d8d8]">
         <div>
@@ -343,20 +345,18 @@ export default function SalesAgentPage() {
                   <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-[4px] space-y-2">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Ready for Razorpay Test Mode Checkout</span>
+                      <span>Ready for Instant UPI / Card Checkout</span>
                     </div>
                     <p className="text-[11px] text-emerald-700">
                       Buyer confirmed order. Signed single-use execution token generated.
                     </p>
-                    <a
-                      href="http://127.0.0.1:8000/test-checkout"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href="/orders"
                       className="inline-flex items-center gap-1 text-xs font-medium text-emerald-900 underline hover:no-underline pt-1"
                     >
-                      <span>Open Razorpay Test Checkout Page</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                      <span>View in Orders Ledger</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
                   </div>
                 )}
               </div>

@@ -14,7 +14,8 @@ from apps.api.routers import (
     buyer_lab, experiments, learning, reward, memory, learning_model, policy_selection,
     policy_safety, policy_exploration, policy_lifecycle, evaluation, decisions, decision_execution, outcomes,
     observability, dashboard, mcp,
-    growth_doctor, marketplace, sales_agent, owner_policy, campaigns, demo_control
+    growth_doctor, marketplace, sales_agent, owner_policy, campaigns, demo_control,
+    whatsapp
 )
 from fastapi.responses import FileResponse
 
@@ -82,6 +83,7 @@ app.include_router(sales_agent.router)
 app.include_router(owner_policy.router)
 app.include_router(campaigns.router)
 app.include_router(demo_control.router)
+app.include_router(whatsapp.router)
 
 @app.get("/test-checkout", response_class=FileResponse)
 async def test_checkout_page():

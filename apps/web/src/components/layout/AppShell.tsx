@@ -5,51 +5,106 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
-  MessageSquare,
   Package,
+  Stethoscope,
+  Grid,
   TrendingUp,
   FileText,
-  Stethoscope,
   Users,
+  MessageSquare,
   ShieldCheck,
   CreditCard,
   History,
   Sparkles,
-  RotateCcw,
-  Search,
+  X,
+  AlertTriangle,
   CheckCircle2,
-  AlertTriangle
+  ChevronRight
 } from 'lucide-react';
-import { TenantSelector } from './TenantSelector';
 import { api } from '@/lib/api';
 
-const NAV_ITEMS = [
+// 4 Primary Bottom Navigation Tabs (Instagram style)
+const BOTTOM_NAV_ITEMS = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
-  { href: '/sales-agent', label: 'Sales Agent', icon: MessageSquare },
   { href: '/products', label: 'Products', icon: Package },
-  { href: '/channels', label: 'Channel Intelligence', icon: TrendingUp },
-  { href: '/listings', label: 'Listings', icon: FileText },
   { href: '/doctor', label: 'Growth Doctor', icon: Stethoscope },
-  { href: '/campaigns', label: 'Campaigns', icon: Users },
-  { href: '/policies', label: 'Policies & Approvals', icon: ShieldCheck },
-  { href: '/orders', label: 'Orders & Payments', icon: CreditCard },
-  { href: '/decisions', label: 'Decision Ledger', icon: History },
-  { href: '/learning', label: 'Learning Center', icon: Sparkles },
+];
+
+// Remaining features accessible via "More" / "Others" drawer
+const MORE_FEATURES = [
+  {
+    href: '/channels',
+    label: 'Channel Intelligence',
+    icon: TrendingUp,
+    description: 'Amazon, WhatsApp & Blinkit margin metrics',
+    color: 'bg-emerald-50 text-emerald-600 border-emerald-200'
+  },
+  {
+    href: '/listings',
+    label: 'Listings',
+    icon: FileText,
+    description: 'Multi-channel catalog & inventory sync',
+    color: 'bg-blue-50 text-blue-600 border-blue-200'
+  },
+  {
+    href: '/campaigns',
+    label: 'Campaigns',
+    icon: Users,
+    description: 'Automated WhatsApp promo & discount blasts',
+    color: 'bg-purple-50 text-purple-600 border-purple-200'
+  },
+  {
+    href: '/whatsapp',
+    label: 'WhatsApp Live Agent',
+    icon: MessageSquare,
+    description: 'Meta Business Platform, phone simulator & webhook audits',
+    color: 'bg-emerald-50 text-emerald-600 border-emerald-200'
+  },
+  {
+    href: '/sales-agent',
+    label: 'Sales Agent',
+    icon: MessageSquare,
+    description: 'Autonomous customer chat negotiations',
+    color: 'bg-amber-50 text-amber-600 border-amber-200'
+  },
+  {
+    href: '/policies',
+    label: 'Policies & Approvals',
+    icon: ShieldCheck,
+    description: 'Margin protection & autonomous governance rules',
+    color: 'bg-rose-50 text-rose-600 border-rose-200'
+  },
+  {
+    href: '/orders',
+    label: 'Orders & Payments',
+    icon: CreditCard,
+    description: 'Customer checkouts & verified payment receipts',
+    color: 'bg-indigo-50 text-indigo-600 border-indigo-200'
+  },
+  {
+    href: '/decisions',
+    label: 'Decision Ledger',
+    icon: History,
+    description: 'Auditable traces of agent actions & auto-orders',
+    color: 'bg-teal-50 text-teal-600 border-teal-200'
+  },
+  {
+    href: '/learning',
+    label: 'Learning Center',
+    icon: Sparkles,
+    description: 'Merchant AI memory, benchmarks & feedback loops',
+    color: 'bg-orange-50 text-orange-600 border-orange-200'
+  },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    router.push(`/decisions?search=${encodeURIComponent(searchQuery.trim())}`);
-  };
 
   const handleResetDemo = async () => {
     setIsResetting(true);
@@ -59,6 +114,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setTimeout(() => {
         setIsResetModalOpen(false);
         setResetSuccess(false);
+        setIsMoreOpen(false);
         window.location.reload();
       }, 1000);
     } catch (err) {
@@ -68,110 +124,188 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Determine if active route is inside the "More" drawer
+  const isMoreActive = MORE_FEATURES.some(
+    (item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+  );
+
   return (
-    <div className="min-h-screen bg-[#ffffff] text-[#080808] flex flex-col font-sans overflow-x-hidden max-w-full">
-      {/* TopBar */}
-      <header className="h-14 border-b border-[#d8d8d8] px-4 sm:px-6 flex items-center justify-between bg-[#ffffff] sticky top-0 z-30 max-w-full">
-        {/* Left: Brand + Identity */}
-        <div className="flex items-center gap-3 sm:gap-6 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded bg-[#146ef5] flex items-center justify-center text-white font-semibold text-xs tracking-wider">
-              MG
-            </div>
-            <div className="flex items-baseline">
-              <span className="font-semibold text-sm tracking-tight text-[#080808] whitespace-nowrap">
-                Merchant Growth Agent
-              </span>
-              <span className="text-[11px] text-[#5a5a5a] ml-2 hidden lg:inline whitespace-nowrap">
-                Policy Core: Merchant Policy Agent
-              </span>
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#fafafa] text-[#080808] flex flex-col font-sans overflow-x-hidden max-w-full">
+      {/* Content Viewport with bottom padding for mobile bar */}
+      <main className="flex-1 min-w-0 bg-[#fafafa] pb-24 md:pb-20">
+        {children}
+      </main>
 
-          <div className="h-4 w-px bg-[#d8d8d8] hidden sm:block" />
-
-          {/* Merchant Tenant Switcher */}
-          <TenantSelector />
-        </div>
-
-        {/* Center: Global Search */}
-        <div className="hidden md:block flex-1 max-w-md mx-4 lg:mx-8">
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <Search className="w-3.5 h-3.5 text-[#5a5a5a] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search trace (opp_..., dec_..., ord_...)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#ffffff] border border-[#d8d8d8] rounded-[4px] pl-9 pr-3 py-1.5 text-xs text-[#080808] placeholder-[#bdbdbd] focus:outline-none focus:border-[#146ef5] transition-all font-mono"
-            />
-          </form>
-        </div>
-
-        {/* Right: Runtime Health + Test Mode + Reset Action */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            onClick={() => setIsResetModalOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs border border-[#d8d8d8] rounded-[4px] text-[#5a5a5a] hover:text-[#080808] hover:border-[#bdbdbd] transition-colors"
-            title="Reset demo data to clean baseline"
+      {/* ============================================================== */}
+      {/* INSTAGRAM-STYLE BOTTOM NAVIGATION (4 ITEMS)                    */}
+      {/* 1: Overview | 2: Products | 3: Growth Doctor | 4: More/Others  */}
+      {/* ============================================================== */}
+      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#e4e4e7] px-2 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+        <div className="max-w-md mx-auto grid grid-cols-4 items-center">
+          
+          {/* Tab 1: Overview */}
+          <Link
+            href="/"
+            onClick={() => setIsMoreOpen(false)}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
+              pathname === '/'
+                ? 'text-[#080808] font-bold scale-105'
+                : 'text-[#71717a] hover:text-[#080808] font-medium'
+            }`}
           >
-            <RotateCcw className="w-3 h-3 text-[#5a5a5a]" />
-            <span className="hidden sm:inline font-medium text-[11px]">Reset Demo</span>
+            <div className={`p-1 rounded-full ${pathname === '/' ? 'bg-[#080808] text-white shadow-xs' : ''}`}>
+              <LayoutDashboard className="w-4 h-4" />
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Overview</span>
+          </Link>
+
+          {/* Tab 2: Products */}
+          <Link
+            href="/products"
+            onClick={() => setIsMoreOpen(false)}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
+              pathname.startsWith('/products')
+                ? 'text-[#080808] font-bold scale-105'
+                : 'text-[#71717a] hover:text-[#080808] font-medium'
+            }`}
+          >
+            <div className={`p-1 rounded-full ${pathname.startsWith('/products') ? 'bg-[#080808] text-white shadow-xs' : ''}`}>
+              <Package className="w-4 h-4" />
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Products</span>
+          </Link>
+
+          {/* Tab 3: Growth Doctor */}
+          <Link
+            href="/doctor"
+            onClick={() => setIsMoreOpen(false)}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
+              pathname.startsWith('/doctor')
+                ? 'text-[#080808] font-bold scale-105'
+                : 'text-[#71717a] hover:text-[#080808] font-medium'
+            }`}
+          >
+            <div className={`p-1 rounded-full ${pathname.startsWith('/doctor') ? 'bg-[#080808] text-white shadow-xs' : ''}`}>
+              <Stethoscope className="w-4 h-4" />
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Doctor</span>
+          </Link>
+
+          {/* Tab 4: More / Others (Opens Remaining Features Drawer) */}
+          <button
+            onClick={() => setIsMoreOpen(!isMoreOpen)}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
+              isMoreOpen || isMoreActive
+                ? 'text-[#080808] font-bold scale-105'
+                : 'text-[#71717a] hover:text-[#080808] font-medium'
+            }`}
+          >
+            <div className={`p-1 rounded-full ${isMoreOpen || isMoreActive ? 'bg-[#080808] text-white shadow-xs' : ''}`}>
+              <Grid className="w-4 h-4" />
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Others</span>
           </button>
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] bg-[#f0f0f0] border border-[#d8d8d8] text-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-            <span className="font-medium text-[#5a5a5a] text-[11px]">ACTIVE</span>
-          </div>
+        </div>
+      </nav>
 
-          <div className="hidden sm:inline-block px-2 py-0.5 rounded-[4px] border border-[#146ef5]/30 bg-[#eff6ff] text-[#146ef5] text-[11px] font-semibold tracking-wide">
-            RAZORPAY TEST MODE
+      {/* ============================================================== */}
+      {/* "OTHERS / MORE" BOTTOM SHEET MODAL (SLIDE-UP DRAWER)           */}
+      {/* Channels, Listings, Campaigns, Sales Agent, Policies, Orders   */}
+      {/* ============================================================== */}
+      {isMoreOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-fade-in"
+            onClick={() => setIsMoreOpen(false)}
+          />
+
+          {/* Sheet Container */}
+          <div className="relative bg-white rounded-t-2xl max-w-lg w-full mx-auto p-4 sm:p-5 shadow-2xl border-t border-[#e4e4e7] z-10 max-h-[85vh] overflow-y-auto animate-slide-up space-y-4">
+            
+            {/* Top Drag Handle */}
+            <div className="w-10 h-1 bg-[#d4d4d8] rounded-full mx-auto" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#f4f4f5]">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/vyapar_mitra_logo.png"
+                  alt="Vyapar Mitra"
+                  className="h-8 w-auto object-contain"
+                />
+                <div className="h-5 w-[1px] bg-[#e4e4e7]" />
+                <div>
+                  <h3 className="text-sm font-bold text-[#080808] tracking-tight">
+                    Merchant Operations Suite
+                  </h3>
+                  <p className="text-[11px] text-[#71717a]">
+                    Channels, campaigns, policies, and ledger
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsMoreOpen(false)}
+                className="p-1.5 rounded-full hover:bg-[#f4f4f5] text-[#71717a] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Features List */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {MORE_FEATURES.map((item) => {
+                const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMoreOpen(false)}
+                    className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
+                      active
+                        ? 'border-[#080808] bg-[#f4f4f5] shadow-xs'
+                        : 'border-[#e4e4e7] bg-white hover:border-[#a1a1aa] hover:bg-[#fafafa]'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg border ${item.color} shrink-0`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-bold truncate ${active ? 'text-[#080808]' : 'text-[#18181b]'}`}>
+                          {item.label}
+                        </span>
+                        <ChevronRight className="w-3.5 h-3.5 text-[#a1a1aa] shrink-0" />
+                      </div>
+                      <p className="text-[10px] text-[#71717a] leading-snug line-clamp-2 mt-0.5">
+                        {item.description}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Reset Demo Quick Action */}
+            <div className="pt-2 border-t border-[#f4f4f5] flex items-center justify-between">
+              <span className="text-[10px] font-mono text-[#71717a]">
+                Vyapar Mitra AI Operations Engine
+              </span>
+              <button
+                onClick={() => {
+                  setIsMoreOpen(false);
+                  setIsResetModalOpen(true);
+                }}
+                className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:underline"
+              >
+                Reset Demo Data
+              </button>
+            </div>
           </div>
         </div>
-      </header>
-
-      {/* Main Container */}
-      <div className="flex flex-1 min-w-0 max-w-full">
-        {/* Sidebar */}
-        <aside className="hidden md:flex w-60 border-r border-[#d8d8d8] bg-[#ffffff] p-3 flex-col justify-between shrink-0">
-          <nav className="space-y-1">
-            {NAV_ITEMS.map((item) => {
-              const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 text-xs rounded-[4px] transition-colors ${
-                    active
-                      ? 'bg-[#146ef5] text-white font-medium'
-                      : 'text-[#5a5a5a] hover:bg-[#f0f0f0] hover:text-[#080808]'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-[#5a5a5a]'}`} />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* System Footer info */}
-          <div className="border-t border-[#d8d8d8] pt-3 px-2 text-[11px] text-[#5a5a5a] space-y-1">
-            <div className="flex justify-between font-mono text-[10px]">
-              <span>PS21: FINTECH</span>
-              <span className="text-[#146ef5]">v0.2.0</span>
-            </div>
-            <p className="text-[10px] leading-tight text-[#5a5a5a]">
-              Zero-leakage paise arithmetic & deterministic margin gates.
-            </p>
-          </div>
-        </aside>
-
-        {/* Content Viewport */}
-        <main className="flex-1 min-w-0 bg-[#ffffff] overflow-y-auto">
-          {children}
-        </main>
-      </div>
+      )}
 
       {/* Reset Demo Modal */}
       {isResetModalOpen && (
@@ -183,7 +317,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <h3 className="font-semibold text-sm text-[#080808]">Reset Demo Data</h3>
                 <p className="text-xs text-[#5a5a5a] mt-1">
                   This will re-initialize Growth Doctor findings, channel allocations, and sample contacts for merchant{' '}
-                  <code className="font-mono text-[#080808]">merch_atlas_travel</code> to their baseline benchmark state.
+                  <code className="font-mono text-[#080808]">Vyapar Mitra</code> to their baseline benchmark state.
                 </p>
               </div>
             </div>
@@ -206,7 +340,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 onClick={handleResetDemo}
                 disabled={isResetting}
-                className="px-3 py-1.5 text-xs font-medium bg-[#146ef5] text-white rounded-[4px] hover:bg-[#1366e2]"
+                className="px-3 py-1.5 text-xs font-medium bg-[#080808] text-white rounded-[4px] hover:bg-[#27272a]"
               >
                 {isResetting ? 'Resetting...' : 'Confirm Reset'}
               </button>

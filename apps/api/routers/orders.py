@@ -44,6 +44,7 @@ class OrderResponseSchema(BaseModel):
     receipt: str
     status: str
     created_at: datetime
+    notes: Optional[Dict[str, Any]] = None
     payments: List[PaymentResponseSchema] = Field(default_factory=list)
 
 

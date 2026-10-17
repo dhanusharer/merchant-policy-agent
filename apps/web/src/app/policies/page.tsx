@@ -183,22 +183,29 @@ export default function PoliciesPage() {
   const isActiveNoOffer = data?.active_policy?.strategy_type === 'NO_OFFER' || !data?.active_policy?.promoted_at;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="w-full px-2 sm:px-4 md:px-6 py-4 space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#e5edf5]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="stripe-tag bg-[#f8fafd] border border-[#e5edf5] text-[#533afd] font-mono text-[11px]">
-              TENANT: {currentMerchant.id}
-            </span>
-            <span className="stripe-tag bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-medium">
-              TEST MODE
-            </span>
-            <span className="text-xs text-[#64748d]">Authoritative Phase 8.8 Policy Lifecycle</span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/vyapar_mitra_logo.png"
+              alt="Vyapar Mitra"
+              className="h-10 sm:h-11 w-auto object-contain"
+            />
+            <div className="h-6 w-[1px] bg-[#e4e4e7] hidden sm:block" />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="stripe-tag bg-[#f8fafd] border border-[#e5edf5] text-[#533afd] font-mono text-[11px]">
+                  GOVERNANCE ENGINE
+                </span>
+                <span className="text-xs text-[#64748d]">Authoritative Policy Lifecycle</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-light text-[#061b31] tracking-tight mt-1">
+                Commercial Policy Lifecycle
+              </h1>
+            </div>
           </div>
-          <h1 className="text-3xl font-light text-[#061b31] tracking-tight mt-1.5">
-            Commercial Policy Lifecycle
-          </h1>
           <p className="text-sm text-[#50617a] font-normal mt-1 leading-relaxed">
             Manage, evaluate, and safely rollback commercial policies. Transitions are evidence-gated with atomic database locks and point-in-time safety clearance.
           </p>
@@ -207,7 +214,7 @@ export default function PoliciesPage() {
         <button
           onClick={loadPolicies}
           disabled={loading}
-          className="stripe-btn-ghost flex items-center gap-1.5 text-xs"
+          className="stripe-btn-ghost flex items-center gap-1.5 text-xs self-start md:self-auto"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           <span>Refresh</span>

@@ -512,7 +512,7 @@ export function DecisionDetailDrawer({ decisionId, merchantId, onClose }: Decisi
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#2563eb] text-white tracking-wide uppercase">
-                        Razorpay Test Mode
+                        Instant Checkout
                       </span>
                       <span className="text-xs font-semibold text-[#061b31]">
                         Commercial Checkout Ready
@@ -524,7 +524,7 @@ export function DecisionDetailDrawer({ decisionId, merchantId, onClose }: Decisi
                   </div>
                   <p className="text-xs text-[#50617a] leading-relaxed">
                     This decision has cleared deterministic commercial safety and is eligible for execution.
-                    Launch authentic Razorpay Test Mode checkout to complete the transaction and close the feedback loop.
+                    Launch checkout to complete the transaction and verify settlement.
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <button
@@ -540,7 +540,7 @@ export function DecisionDetailDrawer({ decisionId, merchantId, onClose }: Decisi
                       ) : (
                         <>
                           <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Open Test Checkout</span>
+                          <span>Open Checkout</span>
                         </>
                       )}
                     </button>
@@ -572,7 +572,7 @@ export function DecisionDetailDrawer({ decisionId, merchantId, onClose }: Decisi
                     </div>
                   </div>
                   <p className="text-xs text-amber-800 leading-relaxed">
-                    In Phase 9.2, autonomous commercial decisions expire after 15 minutes to guarantee fresh inventory and financial safety. Generate a fresh live opportunity to test Razorpay Test Mode checkout.
+                    Commercial decisions expire after 15 minutes to guarantee fresh inventory and pricing safety. Generate a fresh live opportunity to test commercial checkout.
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <button

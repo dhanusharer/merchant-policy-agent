@@ -56,24 +56,32 @@ export default function GrowthDoctorPage() {
   const totalImpactPaise = findings.reduce((sum, f) => sum + (f.rupee_impact_paise || 0), 0);
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="w-full px-2 sm:px-4 md:px-6 py-4 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#d8d8d8]">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[11px] font-semibold text-[#146ef5] bg-[#eff6ff] px-2 py-0.5 rounded-[4px] border border-[#146ef5]/20">
-              COMMERCIAL DIAGNOSTICS
-            </span>
-            <span className="text-xs text-[#5a5a5a]">
-              Deterministic Profit Leak Audit
-            </span>
+        <div className="flex items-center gap-3">
+          <img
+            src="/vyapar_mitra_logo.png"
+            alt="Vyapar Mitra"
+            className="h-10 sm:h-11 w-auto object-contain"
+          />
+          <div className="h-6 w-[1px] bg-[#e4e4e7] hidden sm:block" />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[11px] font-semibold text-[#146ef5] bg-[#eff6ff] px-2 py-0.5 rounded-[4px] border border-[#146ef5]/20">
+                COMMERCIAL DIAGNOSTICS
+              </span>
+              <span className="text-xs text-[#5a5a5a]">
+                Deterministic Profit Leak Audit
+              </span>
+            </div>
+            <h1 className="text-xl md:text-2xl font-semibold text-[#080808] tracking-tight mt-0.5">
+              Growth Doctor
+            </h1>
+            <p className="text-xs md:text-sm text-[#5a5a5a] mt-0.5 max-w-3xl leading-relaxed">
+              Uncovers hidden margin leaks, dead stock, and pricing opportunities backed by mathematical proof and transaction evidence.
+            </p>
           </div>
-          <h1 className="text-2xl md:text-3xl font-semibold text-[#080808] tracking-tight mt-1">
-            Growth Doctor
-          </h1>
-          <p className="text-xs md:text-sm text-[#5a5a5a] mt-0.5 max-w-3xl leading-relaxed">
-            Uncovers hidden margin leaks, dead stock, and pricing opportunities backed by mathematical proof and transaction evidence.
-          </p>
         </div>
 
         <button

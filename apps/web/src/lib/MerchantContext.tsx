@@ -10,7 +10,7 @@ export interface MerchantInfo {
 }
 
 export const PRESET_MERCHANTS: MerchantInfo[] = [
-  { id: 'merch_atlas_travel', name: 'Atlas Travel Gear', category: 'Luggage & Travel Accessories' },
+  { id: 'merch_atlas_travel', name: 'Vyapar Mitra', category: 'Premium Apparel & Lifestyle Gear' },
   { id: 'merch_alpha', name: 'Alpha Outfitters', category: 'Outdoor Gear' },
   { id: 'merch_95_alpha', name: 'Alpha Electronics', category: 'Electronics & Audio' },
 ];

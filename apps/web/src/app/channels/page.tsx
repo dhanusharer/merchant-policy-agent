@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useMerchant } from '@/lib/MerchantContext';
 import { api, formatPaise } from '@/lib/api';
+import { ChannelAnalyticsModal } from '@/components/channels/ChannelAnalyticsModal';
 
 type ViewMode = 'SEGREGATED' | 'SINGLE_CHANNEL' | 'SKU_MATRIX';
 
@@ -33,6 +34,7 @@ export default function ChannelIntelligencePage() {
   const { currentMerchant } = useMerchant();
   const [plan, setPlan] = useState<any[]>([]);
   const [channels, setChannels] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [selectedChannelId, setSelectedChannelId] = useState<string>('AMAZON');
   const [viewMode, setViewMode] = useState<ViewMode>('SEGREGATED');
   const [filterDecision, setFilterDecision] = useState<'ALL' | 'LIST' | 'HOLD'>('ALL');
@@ -40,19 +42,27 @@ export default function ChannelIntelligencePage() {
   const [error, setError] = useState<string | null>(null);
   const [inspectedItem, setInspectedItem] = useState<{ product: any; channel: any } | null>(null);
   const [showAssumptionsModal, setShowAssumptionsModal] = useState(false);
+  const [analyzingChannelData, setAnalyzingChannelData] = useState<{
+    channel: any;
+    approved: any[];
+    held: any[];
+  } | null>(null);
 
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [planRes, chRes] = await Promise.all([
+      const [planRes, chRes, ordersRes] = await Promise.all([
         api.getMarketplacePlan(currentMerchant.id),
-        api.getChannels(currentMerchant.id)
+        api.getChannels(currentMerchant.id),
+        api.getOrders(100, 0).catch(() => ({ orders: [] }))
       ]);
       const loadedPlan = planRes.plan || [];
       const loadedChannels = chRes.channels || [];
+      const loadedOrders = ordersRes.orders || [];
       setPlan(loadedPlan);
       setChannels(loadedChannels);
+      setOrders(loadedOrders);
 
       if (loadedPlan.length > 0 && loadedChannels.length > 0) {
         const firstProd = loadedPlan[0];
@@ -163,22 +173,32 @@ export default function ChannelIntelligencePage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="w-full px-2 sm:px-4 md:px-6 py-4 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#d8d8d8]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[11px] font-semibold text-[#146ef5] bg-[#eff6ff] px-2 py-0.5 rounded-[4px] border border-[#146ef5]/20">
-              CHANNEL ECONOMICS ENGINE
-            </span>
-            <span className="text-xs text-[#5a5a5a]">
-              Deterministic Unit Contribution Routing
-            </span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/vyapar_mitra_logo.png"
+              alt="Vyapar Mitra"
+              className="h-10 sm:h-11 w-auto object-contain"
+            />
+            <div className="h-6 w-[1px] bg-[#e4e4e7] hidden sm:block" />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[11px] font-semibold text-[#146ef5] bg-[#eff6ff] px-2 py-0.5 rounded-[4px] border border-[#146ef5]/20">
+                  CHANNEL ECONOMICS ENGINE
+                </span>
+                <span className="text-xs text-[#5a5a5a]">
+                  Deterministic Unit Contribution Routing
+                </span>
+              </div>
+              <h1 className="text-xl md:text-2xl font-semibold text-[#080808] tracking-tight mt-0.5">
+                Product Segregation by Digital Channel
+              </h1>
+            </div>
           </div>
-          <h1 className="text-2xl md:text-3xl font-semibold text-[#080808] tracking-tight mt-1">
-            Product Segregation by Digital Channel
-          </h1>
-          <p className="text-xs md:text-sm text-[#5a5a5a] mt-0.5 max-w-3xl leading-relaxed">
+          <p className="text-xs md:text-sm text-[#5a5a5a] mt-1 max-w-3xl leading-relaxed">
             Routes every SKU to the highest-yielding channels while blocking margin-destructive listings. Real deductions calculated in integer paise across fees, return logistics, and ad CAC.
           </p>
         </div>
@@ -215,13 +235,15 @@ export default function ChannelIntelligencePage() {
           const Icon = getChannelIcon(cs.channel.channel_id);
           const isSelected = selectedChannelId === cs.channel.channel_id && viewMode === 'SINGLE_CHANNEL';
           return (
-            <button
+            <div
               key={cs.channel.channel_id}
               onClick={() => {
                 setSelectedChannelId(cs.channel.channel_id);
                 setViewMode('SINGLE_CHANNEL');
               }}
-              className={`p-3 rounded-[6px] border text-left transition-all flex flex-col justify-between ${
+              role="button"
+              tabIndex={0}
+              className={`p-3 rounded-[6px] border text-left transition-all flex flex-col justify-between cursor-pointer ${
                 isSelected
                   ? 'border-[#146ef5] bg-[#eff6ff] shadow-sm'
                   : 'border-[#d8d8d8] bg-white hover:border-[#bdbdbd]'
@@ -242,9 +264,25 @@ export default function ChannelIntelligencePage() {
               </div>
               <div className="mt-2 pt-2 border-t border-[#d8d8d8]/60 flex items-center justify-between text-[11px]">
                 <span className="text-emerald-700 font-semibold">{cs.approved.length} List</span>
-                <span className="text-rose-700 font-medium">{cs.held.length} Hold</span>
+                <span className="text-rose-700 font-semibold">{cs.held.length} Hold</span>
               </div>
-            </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAnalyzingChannelData({
+                    channel: cs.channel,
+                    approved: cs.approved,
+                    held: cs.held
+                  });
+                }}
+                className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1 px-2 text-[10px] font-semibold bg-[#146ef5]/10 text-[#146ef5] hover:bg-[#146ef5] hover:text-white rounded-[4px] transition-colors"
+                title={`Analyze ${cs.channel.name} channel economics and order flow`}
+              >
+                <TrendingUp className="w-3 h-3" />
+                <span>Analyze Channel</span>
+              </button>
+            </div>
           );
         })}
       </div>
@@ -356,7 +394,7 @@ export default function ChannelIntelligencePage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs font-mono">
+                    <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
                       <div className="text-right">
                         <span className="text-[#5a5a5a] block text-[10px] uppercase tracking-wider">Fee Structure</span>
                         <span className="font-semibold text-[#080808]">
@@ -374,6 +412,20 @@ export default function ChannelIntelligencePage() {
                         <span className="font-semibold text-emerald-700">
                           {cs.approved.length} of {cs.approved.length + cs.held.length} SKUs
                         </span>
+                      </div>
+                      <div className="border-l border-[#d8d8d8] pl-4">
+                        <button
+                          type="button"
+                          onClick={() => setAnalyzingChannelData({
+                            channel: cs.channel,
+                            approved: cs.approved,
+                            held: cs.held
+                          })}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#146ef5] text-white rounded-[4px] hover:bg-[#1366e2] transition-colors shadow-2xs font-sans"
+                        >
+                          <TrendingUp className="w-3.5 h-3.5" />
+                          <span>Analyze Channel</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -556,6 +608,20 @@ export default function ChannelIntelligencePage() {
                 <span className="text-sm font-semibold text-[#146ef5]">
                   {formatPaise(activeChannelData.totalContributionPaise)}
                 </span>
+              </div>
+              <div className="border-l border-[#d8d8d8] pl-3">
+                <button
+                  type="button"
+                  onClick={() => setAnalyzingChannelData({
+                    channel: activeChannelData.channel,
+                    approved: activeChannelData.approved,
+                    held: activeChannelData.held
+                  })}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#146ef5] text-white rounded-[4px] hover:bg-[#1366e2] transition-colors shadow-2xs"
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>Analyze Channel</span>
+                </button>
               </div>
             </div>
           </div>
@@ -840,6 +906,18 @@ export default function ChannelIntelligencePage() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* Channel Analytics Modal */}
+      {analyzingChannelData && (
+        <ChannelAnalyticsModal
+          isOpen={true}
+          onClose={() => setAnalyzingChannelData(null)}
+          channel={analyzingChannelData.channel}
+          approvedProducts={analyzingChannelData.approved || []}
+          heldProducts={analyzingChannelData.held || []}
+          allOrders={orders}
+        />
       )}
     </div>
   );

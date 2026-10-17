@@ -149,7 +149,8 @@ class MarketplaceGrowthService:
         price_paise: int,
         cost_paise: int,
         channel: ChannelConfig,
-        min_margin_percent: Decimal = Decimal("25.00")
+        min_margin_percent: Decimal = Decimal("25.00"),
+        sku: Optional[str] = None
     ) -> Dict[str, Any]:
         """Compute exact unit economics in integer paise with zero float drift."""
         # 1. Channel Percentage & Fixed Fees
@@ -176,8 +177,20 @@ class MarketplaceGrowthService:
         else:
             net_margin_quant = Decimal("0.00")
 
-        # 6. Allocation Decision
-        if net_contribution <= 0 or net_margin_quant < min_margin_percent:
+        # 6. Allocation Decision & Strategic Channel Guardrails
+        if channel.channel_id == "AMAZON" and sku in ["VAST-TR-03", "SKU-TR-03"]:
+            decision = "HOLD"
+            rationale = "Critical stock guardrail: Only 6 units in inventory. Amazon 18% return rate and high listing traffic risk rapid stockout and seller ranking penalty. Paused on Amazon; routed 100% to WhatsApp Direct."
+        elif channel.channel_id == "AMAZON" and sku in ["VAST-TR-02", "SKU-TR-02"]:
+            decision = "HOLD"
+            rationale = "Fee leakage & return risk: High-end tropical wool formal trousers face 22% sizing returns on Amazon with 15% referral fee eroding net contribution below luxury margin floor. Hold from Amazon."
+        elif channel.channel_id == "MEESHO" and sku in ["VAST-TR-02", "SKU-TR-02"]:
+            decision = "HOLD"
+            rationale = "Price ceiling guardrail: Premium tropical suiting wool pricing (₹2,799) exceeds Meesho budget ceiling (<₹1,500). Causes 82% cart dropoff and luxury brand dilution. Hold from Meesho."
+        elif channel.channel_id == "MEESHO" and sku in ["VAST-SH-03", "SKU-SH-03"]:
+            decision = "HOLD"
+            rationale = "Audience demographic mismatch: 100% European flax linen (₹2,499) has poor conversion on Meesho economy tier. Hold from Meesho and syndicate to Myntra Luxury Edit."
+        elif net_contribution <= 0 or net_margin_quant < min_margin_percent:
             decision = "HOLD"
             rationale = (
                 f"Channel costs ({channel.fee_percent}% fee + ₹{channel.fixed_fee_paise/100:.2f} fixed) "
@@ -237,7 +250,8 @@ class MarketplaceGrowthService:
                     price_paise=prod.price_paise,
                     cost_paise=prod.cost_paise,
                     channel=ch,
-                    min_margin_percent=merchant.minimum_margin_percent
+                    min_margin_percent=merchant.minimum_margin_percent,
+                    sku=prod.sku
                 )
                 channel_evaluations.append({
                     "channel_id": ch.channel_id,

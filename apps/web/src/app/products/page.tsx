@@ -8,10 +8,15 @@ import {
   Tag,
   Lock,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Wand2,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 import { useMerchant } from '@/lib/MerchantContext';
 import { api, formatPaise, formatPercent } from '@/lib/api';
+import { AIProductStudioModal } from '@/components/products/AIProductStudioModal';
+import { ProductDetailModal } from '@/components/products/ProductDetailModal';
 
 export default function ProductsPage() {
   const { currentMerchant } = useMerchant();
@@ -19,6 +24,9 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [isStudioOpen, setIsStudioOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -43,35 +51,73 @@ export default function ProductsPage() {
     : products.filter((p) => p.category === selectedCategory);
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#d8d8d8]">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[11px] font-semibold text-[#146ef5] bg-[#eff6ff] px-2 py-0.5 rounded-[4px] border border-[#146ef5]/20">
-              OWNER INVENTORY & COGS
-            </span>
-            <span className="text-xs text-[#5a5a5a]">
-              Wholesale Economics View
-            </span>
+    <div className="w-full px-2 sm:px-4 md:px-6 py-4 space-y-6">
+      {/* Header with Vyapar Mitra Branding */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e4e4e7]">
+        <div className="flex items-center gap-3">
+          <img
+            src="/vyapar_mitra_logo.png"
+            alt="Vyapar Mitra"
+            className="h-10 sm:h-11 w-auto object-contain"
+          />
+          <div className="h-6 w-[1px] bg-[#e4e4e7] hidden sm:block" />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[10px] font-semibold text-[#080808] bg-[#f4f4f5] px-2 py-0.5 rounded border border-[#e4e4e7]">
+                LIVE INVENTORY
+              </span>
+              <span className="text-xs text-[#71717a]">
+                Wholesale & Margins
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#080808] tracking-tight mt-0.5">
+              Product Catalog
+            </h1>
           </div>
-          <h1 className="text-2xl md:text-3xl font-semibold text-[#080808] tracking-tight mt-1">
-            Merchant Product Catalog
-          </h1>
-          <p className="text-xs md:text-sm text-[#5a5a5a] mt-0.5 max-w-3xl leading-relaxed">
-            Authorized merchant inventory with wholesale COGS and margin floors. (COGS is strictly concealed from external AI buyers by the egress firewall).
-          </p>
         </div>
 
-        <button
-          onClick={loadProducts}
-          disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#146ef5] text-white rounded-[4px] hover:bg-[#1366e2] self-start md:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Catalog</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsStudioOpen(true)}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold bg-[#080808] text-white rounded-lg hover:bg-[#27272a] transition-all shadow-xs"
+          >
+            <Wand2 className="w-3.5 h-3.5 text-amber-300" />
+            <span>+ Add New Product</span>
+          </button>
+          <button
+            onClick={loadProducts}
+            disabled={loading}
+            className="p-2 sm:px-3 sm:py-2 text-xs font-medium border border-[#d4d4d8] text-[#52525b] rounded-lg hover:bg-[#f4f4f5] transition-colors"
+            title="Refresh Catalog"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
+
+      {/* Banner Strip */}
+      <div className="relative w-full h-24 sm:h-32 rounded-[10px] overflow-hidden border border-[#e4e4e7] shadow-xs">
+        <img
+          src="/catalog_banner.jpg"
+          alt="Vyapar Mitra Apparel Collection"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent flex flex-col justify-center px-5 sm:px-8 text-white">
+          <span className="text-[10px] font-mono tracking-widest text-amber-300 uppercase font-semibold">
+            Merchant Inventory & Economics
+          </span>
+          <h2 className="text-base sm:text-xl font-bold tracking-tight text-white mt-0.5">
+            Active Catalog — Vyapar Mitra Collection
+          </h2>
+        </div>
+      </div>
+
+      {toastMsg && (
+        <div className="p-3.5 rounded-[8px] bg-emerald-50 border border-emerald-300 text-xs font-semibold text-emerald-900 flex items-center gap-2 shadow-sm animate-fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 rounded-[4px] border border-rose-300 bg-rose-50 text-xs text-rose-800 flex items-center gap-2">
@@ -106,7 +152,7 @@ export default function ProductsPage() {
               Active Merchant Products ({filtered.length})
             </h3>
             <p className="text-[11px] text-[#5a5a5a]">
-              All amounts in exact integer paise. Stock reservations audited atomically.
+              Tap any row to view complete description, marketplace placements, and tailored recommendations.
             </p>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-[#5a5a5a]">
@@ -126,7 +172,7 @@ export default function ProductsPage() {
                 <th className="py-2.5 px-3">List Price</th>
                 <th className="py-2.5 px-3">Wholesale COGS</th>
                 <th className="py-2.5 px-3">Gross Margin</th>
-                <th className="py-2.5 px-3 text-right">Status</th>
+                <th className="py-2.5 px-3 text-right">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#d8d8d8]">
@@ -135,10 +181,32 @@ export default function ProductsPage() {
                   ? ((p.price_paise - p.cost_paise) / p.price_paise) * 100
                   : 0;
                 return (
-                  <tr key={p.id} className="hover:bg-[#f0f0f0] transition-colors">
+                  <tr
+                    key={p.id}
+                    onClick={() => setSelectedProduct(p)}
+                    className="hover:bg-[#f8fafc] active:bg-[#f1f5f9] cursor-pointer transition-colors group"
+                    title="Click to view complete description, marketplaces, and AI recommendations"
+                  >
                     <td className="py-3 px-3">
-                      <div className="font-semibold text-[#080808]">{p.name}</div>
-                      <div className="font-mono text-[10px] text-[#5a5a5a]">{p.sku}</div>
+                      <div className="flex items-center gap-2.5">
+                        <img
+                          src={p.attributes?.refined_photo_url ||
+                            (p.name?.toLowerCase().includes('oxford') || p.name?.toLowerCase().includes('white') ? '/clothing/white_oxford.jpg' :
+                             p.name?.toLowerCase().includes('navy') ? '/clothing/navy_shirt.jpg' :
+                             p.name?.toLowerCase().includes('linen') || p.name?.toLowerCase().includes('olive') ? '/clothing/linen_shirt.jpg' :
+                             p.name?.toLowerCase().includes('khaki') || p.name?.toLowerCase().includes('chino') ? '/clothing/khaki_chino.jpg' :
+                             p.name?.toLowerCase().includes('grey') || p.name?.toLowerCase().includes('charcoal') ? '/clothing/grey_trouser.jpg' :
+                             '/clothing/black_trouser.jpg')}
+                          alt={p.name}
+                          className="w-10 h-10 rounded-md object-cover bg-white border border-[#e4e4e7] shrink-0 group-hover:border-[#146ef5] transition-colors"
+                        />
+                        <div>
+                          <div className="font-semibold text-[#080808] group-hover:text-[#146ef5] transition-colors">
+                            {p.name}
+                          </div>
+                          <div className="font-mono text-[10px] text-[#71717a]">{p.sku}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="py-3 px-3 font-mono text-[11px] text-[#5a5a5a]">
                       {p.category}
@@ -159,15 +227,10 @@ export default function ProductsPage() {
                       {margin.toFixed(1)}%
                     </td>
                     <td className="py-3 px-3 text-right">
-                      {p.inventory_quantity > 0 ? (
-                        <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                          ACTIVE
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-rose-50 text-rose-800 border border-rose-200">
-                          OUT OF STOCK
-                        </span>
-                      )}
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#146ef5] bg-blue-50 px-2 py-1 rounded border border-blue-200 group-hover:bg-[#146ef5] group-hover:text-white transition-all">
+                        <span>Details</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </span>
                     </td>
                   </tr>
                 );
@@ -176,6 +239,24 @@ export default function ProductsPage() {
           </table>
         </div>
       </div>
+
+      {/* Product Detail Modal: Description, Marketplaces & AI Recommendations */}
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={!!selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onActionComplete={(msg) => {
+          setToastMsg(msg);
+          loadProducts();
+        }}
+      />
+
+      {/* Multimodal AI Product Studio Modal */}
+      <AIProductStudioModal
+        isOpen={isStudioOpen}
+        onClose={() => setIsStudioOpen(false)}
+        onProductCreated={loadProducts}
+      />
     </div>
   );
 }

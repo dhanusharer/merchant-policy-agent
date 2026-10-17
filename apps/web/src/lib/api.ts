@@ -256,6 +256,24 @@ export const api = {
   getProducts: (merchantId: string) =>
     request<any>(`/api/v1/merchants/${encodeURIComponent(merchantId)}/products`, undefined, merchantId),
 
+  createProduct: (merchantId: string, data: any) =>
+    request<any>(`/api/v1/merchants/${encodeURIComponent(merchantId)}/products`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }, merchantId),
+
+  updateProduct: (merchantId: string, productId: string, data: any) =>
+    request<any>(`/api/v1/merchants/${encodeURIComponent(merchantId)}/products/${encodeURIComponent(productId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    }, merchantId),
+
+  aiRefineProduct: (merchantId: string, data: any) =>
+    request<any>(`/api/v1/merchants/${encodeURIComponent(merchantId)}/products/ai-refine`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }, merchantId),
+
   getOrders: (limit: number = 20, offset: number = 0) =>
     request<any>(`/api/v1/orders?limit=${limit}&offset=${offset}`),
 
@@ -264,7 +282,21 @@ export const api = {
     request<any>('/api/v1/demo/reset', {
       method: 'POST',
       body: JSON.stringify({ merchant_id: merchantId })
-    }, merchantId)
+    }, merchantId),
+
+  // 15. WhatsApp Business Integration
+  getWhatsAppDiagnostics: () =>
+    request<any>('/api/v1/whatsapp/diagnostics'),
+
+  simulateWhatsApp: (senderPhone: string, messageText: string, wamid?: string) =>
+    request<any>('/api/v1/whatsapp/simulate', {
+      method: 'POST',
+      body: JSON.stringify({
+        sender_phone: senderPhone,
+        message_text: messageText,
+        wamid: wamid
+      })
+    })
 };
 
 // Utilities for currency, dates, and formatting

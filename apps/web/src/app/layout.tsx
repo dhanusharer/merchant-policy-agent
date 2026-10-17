@@ -5,8 +5,8 @@ import { MerchantProvider } from '@/lib/MerchantContext';
 import { AppShell } from '@/components/layout/AppShell';
 
 export const metadata: Metadata = {
-  title: 'Merchant AI Control Center | Razorpay AI Track 01',
-  description: 'Teach an AI what makes your business win. Authoritative control, evaluation, and observability for autonomous policy decisions.',
+  title: 'Vyapar Mitra Dashboard | Merchant AI Control',
+  description: 'Autonomous merchant growth and real-time operations engine for Vyapar Mitra.',
 };
 
 export default function RootLayout({

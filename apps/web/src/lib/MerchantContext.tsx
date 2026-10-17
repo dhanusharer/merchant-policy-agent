@@ -6,6 +6,7 @@ export interface MerchantInfo {
   id: string;
   name: string;
   category: string;
+  minimum_margin_percent?: number;
 }
 
 export const PRESET_MERCHANTS: MerchantInfo[] = [

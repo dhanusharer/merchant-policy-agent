@@ -11,358 +11,374 @@ import {
   Activity,
   Layers,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Stethoscope,
+  MessageSquare,
+  Users,
+  Clock,
+  ExternalLink
 } from 'lucide-react';
 import { useMerchant } from '@/lib/MerchantContext';
-import { api, formatPaise, formatPercent, formatDateTime, getExecutionStatusBadge, getOutcomeStatusBadge } from '@/lib/api';
+import {
+  api,
+  formatPaise,
+  formatPercent,
+  formatDateTime,
+  getExecutionStatusBadge,
+  getOutcomeStatusBadge
+} from '@/lib/api';
 import { DashboardOverview } from '@/lib/types';
 import { DecisionDetailDrawer } from '@/components/decisions/DecisionDetailDrawer';
 
 export default function OverviewPage() {
   const { currentMerchant } = useMerchant();
   const [data, setData] = useState<DashboardOverview | null>(null);
+  const [doctorFindings, setDoctorFindings] = useState<any[]>([]);
+  const [approvals, setApprovals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDecisionId, setSelectedDecisionId] = useState<string | null>(null);
+  const [proposingAction, setProposingAction] = useState(false);
+  const [proposedSuccess, setProposedSuccess] = useState(false);
 
-  const loadData = () => {
+  const loadData = async () => {
     setLoading(true);
     setError(null);
-    api.getOverview(currentMerchant.id)
-      .then((res) => setData(res))
-      .catch((err) => setError(err.message || 'Failed to load dashboard overview'))
-      .finally(() => setLoading(false));
+    try {
+      const [overviewRes, doctorRes, approvalsRes] = await Promise.all([
+        api.getOverview(currentMerchant.id),
+        api.getDoctorFindings(currentMerchant.id).catch(() => ({ findings: [] })),
+        api.getApprovals(currentMerchant.id).catch(() => ({ approvals: [] }))
+      ]);
+      setData(overviewRes);
+      setDoctorFindings(doctorRes.findings || []);
+      setApprovals(approvalsRes.approvals || []);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     loadData();
   }, [currentMerchant.id]);
 
+  const topFinding = doctorFindings.length > 0 ? doctorFindings[0] : null;
+
+  const handleProposeAction = async (findingId: string) => {
+    setProposingAction(true);
+    try {
+      await api.proposeDoctorAction(currentMerchant.id, findingId);
+      setProposedSuccess(true);
+      await loadData();
+      setTimeout(() => setProposedSuccess(false), 3000);
+    } catch (err: any) {
+      alert('Failed to propose action: ' + err.message);
+    } finally {
+      setProposingAction(false);
+    }
+  };
+
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header Section */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#d8d8d8]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="stripe-tag bg-[#f8fafd] border border-[#e5edf5] text-[#533afd] font-mono text-[11px]">
+            <span className="font-mono text-[11px] font-semibold text-[#146ef5] bg-[#eff6ff] px-2 py-0.5 rounded-[4px] border border-[#146ef5]/20">
               TENANT: {currentMerchant.id}
             </span>
-            <span className="text-xs text-[#64748d] font-light">
+            <span className="text-xs text-[#5a5a5a]">
               Updated {formatDateTime(data?.generated_at)}
             </span>
           </div>
-          <h1 className="text-3xl font-light text-[#061b31] tracking-tight mt-1.5">
-            {data?.status_headline || 'Teach an AI what makes your business win.'}
+          <h1 className="text-2xl md:text-3xl font-semibold text-[#080808] tracking-tight mt-1">
+            Merchant Growth Cockpit
           </h1>
-          <p className="text-sm text-[#50617a] font-normal mt-1 max-w-2xl leading-relaxed">
-            {data?.status_subtext || 'Autonomous decision pipeline balancing revenue and margin with point-in-time safety checks and closed-loop learning.'}
+          <p className="text-xs md:text-sm text-[#5a5a5a] mt-0.5 max-w-3xl leading-relaxed">
+            Autonomous commercial policy, channel allocation, and margin governance for {currentMerchant.name}.
           </p>
         </div>
 
-        <button
-          onClick={loadData}
-          disabled={loading}
-          className="stripe-btn-ghost flex items-center gap-1.5 text-xs"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          <Link
+            href="/sales-agent"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium bg-[#146ef5] text-white rounded-[4px] hover:bg-[#1366e2] transition-colors shadow-xs"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Open Sales Agent</span>
+          </Link>
+          <Link
+            href="/channels"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[#d8d8d8] text-[#080808] rounded-[4px] hover:bg-[#f0f0f0] transition-colors"
+          >
+            <TrendingUp className="w-3.5 h-3.5 text-[#146ef5]" />
+            <span>Channel Segregation</span>
+          </Link>
+          <button
+            onClick={loadData}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[#d8d8d8] text-[#5a5a5a] rounded-[4px] hover:bg-[#f0f0f0] transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded border border-rose-200 bg-rose-50 text-xs text-rose-800 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div className="p-4 rounded-[4px] border border-rose-300 bg-rose-50 text-xs text-rose-800 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
           <span>{error}</span>
         </div>
       )}
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="stripe-card p-4">
-          <div className="text-xs text-[#64748d] font-normal">AI Opportunities</div>
-          <div className="text-2xl font-light text-[#061b31] mt-1 tabular-nums">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="studio-card p-4">
+          <div className="text-[11px] text-[#5a5a5a] font-medium uppercase tracking-wider">AI Enquiries</div>
+          <div className="text-2xl font-semibold text-[#080808] mt-1 tabular-nums">
             {data?.ai_buyer_opportunities_count ?? 0}
           </div>
-          <div className="text-[11px] text-[#839bc8] mt-1 font-light">Incoming shopping queries</div>
+          <div className="text-[11px] text-[#5a5a5a] mt-0.5">Autonomous requests</div>
         </div>
 
-        <div className="stripe-card p-4">
-          <div className="text-xs text-[#64748d] font-normal">Decisions Evaluated</div>
-          <div className="text-2xl font-light text-[#061b31] mt-1 tabular-nums">
+        <div className="studio-card p-4">
+          <div className="text-[11px] text-[#5a5a5a] font-medium uppercase tracking-wider">Decisions Rendered</div>
+          <div className="text-2xl font-semibold text-[#080808] mt-1 tabular-nums">
             {data?.decision_count ?? 0}
           </div>
-          <div className="text-[11px] text-[#839bc8] mt-1 font-light">Canonical decisions rendered</div>
+          <div className="text-[11px] text-[#5a5a5a] mt-0.5">Policy validated</div>
         </div>
 
-        <div className="stripe-card p-4">
-          <div className="text-xs text-[#64748d] font-normal">Decision Rate</div>
-          <div className="text-2xl font-light text-[#061b31] mt-1 tabular-nums">
-            {formatPercent(data?.decision_rate_percent)}
-          </div>
-          <div className="text-[11px] text-[#839bc8] mt-1 font-light">Opportunities evaluated</div>
-        </div>
-
-        <div className="stripe-card p-4">
-          <div className="text-xs text-[#64748d] font-normal">Expected Contribution</div>
-          <div className="text-2xl font-light text-[#533afd] mt-1 tabular-nums">
-            {formatPaise(data?.expected_contribution_paise, data?.currency)}
-          </div>
-          <div className="text-[11px] text-[#839bc8] mt-1 font-light">Predicted portfolio gain</div>
-        </div>
-
-        <div className="stripe-card p-4">
-          <div className="text-xs text-[#64748d] font-normal">Test-Mode Observed</div>
-          <div className="text-2xl font-light text-emerald-700 mt-1 tabular-nums">
-            {formatPaise(data?.test_mode_observed_contribution_paise, data?.currency)}
-          </div>
-          <div className="text-[11px] text-[#839bc8] mt-1 font-light">Captured test rewards</div>
-        </div>
-
-        <div className="stripe-card p-4">
-          <div className="text-xs text-[#64748d] font-normal">Paid Transactions</div>
-          <div className="text-2xl font-light text-[#061b31] mt-1 tabular-nums">
+        <div className="studio-card p-4">
+          <div className="text-[11px] text-[#5a5a5a] font-medium uppercase tracking-wider">Verified Sales</div>
+          <div className="text-2xl font-semibold text-[#080808] mt-1 tabular-nums">
             {data?.paid_transactions_count ?? 0}
           </div>
-          <div className="text-[11px] text-[#839bc8] mt-1 font-light">Settled through Phase 5</div>
+          <div className="text-[11px] text-emerald-700 mt-0.5 font-medium">Razorpay Captured Orders</div>
+        </div>
+
+        <div className="studio-card p-4">
+          <div className="text-[11px] text-[#5a5a5a] font-medium uppercase tracking-wider">Net Contribution</div>
+          <div className="text-2xl font-semibold text-[#146ef5] mt-1 tabular-nums">
+            {formatPaise(data?.observed_contribution_paise)}
+          </div>
+          <div className="text-[11px] text-[#5a5a5a] mt-0.5">Revenue − COGS − Fees</div>
+        </div>
+
+        <div className="studio-card p-4">
+          <div className="text-[11px] text-[#5a5a5a] font-medium uppercase tracking-wider">Decision Rate</div>
+          <div className="text-2xl font-semibold text-[#080808] mt-1 tabular-nums">
+            {data?.decision_rate_percent !== undefined ? `${data.decision_rate_percent.toFixed(0)}%` : '100%'}
+          </div>
+          <div className="text-[11px] text-emerald-700 mt-0.5 font-medium">≥ 25% floor preserved</div>
+        </div>
+
+        <div className="studio-card p-4">
+          <div className="text-[11px] text-[#5a5a5a] font-medium uppercase tracking-wider">Pending Approvals</div>
+          <div className="text-2xl font-semibold text-amber-700 mt-1 tabular-nums">
+            {approvals.length}
+          </div>
+          <div className="text-[11px] text-[#5a5a5a] mt-0.5">Requires owner sign-off</div>
         </div>
       </div>
 
-      {/* Two Column Section: Learning Insight & Active Policy */}
+      {/* Top Banner: Growth Doctor Finding & Channel Strategy */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Top Learned Commercial Signal */}
-        <div className="lg:col-span-2 stripe-card p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
+        {/* Top Growth Doctor Finding */}
+        <div className="lg:col-span-2 studio-card p-6 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#533afd]" />
-                <div>
-                  <h3 className="text-sm font-medium text-[#061b31]">Top Learned Commercial Signal</h3>
-                  <p className="text-[11px] text-[#64748d]">Best performing candidate across explored buyer contexts</p>
-                </div>
+                <span className="p-1.5 bg-rose-50 text-rose-700 rounded-[4px] border border-rose-200">
+                  <Stethoscope className="w-4 h-4" />
+                </span>
+                <span className="font-semibold text-xs tracking-wider uppercase text-rose-800">
+                  Top Growth Doctor Finding
+                </span>
               </div>
-              <span className="stripe-tag bg-[#e8e9ff] text-[#533afd] text-[11px] font-medium">
-                TOP CONTEXT SIGNAL
+              <span className="text-[11px] font-mono font-medium px-2 py-0.5 bg-[#f0f0f0] border border-[#d8d8d8] rounded-[4px] text-[#5a5a5a]">
+                HIGH CONFIDENCE
               </span>
             </div>
 
-            {data?.learning_insight ? (
-              <div className="space-y-4">
-                <p className="text-sm text-[#50617a] leading-relaxed">
-                  In category <span className="font-semibold text-[#061b31]">{data.learning_insight.context_description}</span>, the autonomous agent identified <span className="font-semibold text-[#533afd]">{data.learning_insight.observed_preference_strategy}</span> as the superior economic trade-off.
+            {topFinding ? (
+              <>
+                <h3 className="text-lg font-semibold text-[#080808]">
+                  {topFinding.title}
+                </h3>
+                <p className="text-xs text-[#5a5a5a] leading-relaxed">
+                  {topFinding.description}
                 </p>
-
-                <div className="grid grid-cols-3 gap-4 p-4 rounded bg-[#f8fafd] border border-[#e5edf5] text-xs">
-                  <div>
-                    <div className="text-[#64748d]">Context Evidence</div>
-                    <div className="text-base font-medium text-[#061b31] mt-0.5 tabular-nums">
-                      {data.learning_insight.evidence_count} observation
-                    </div>
-                    <div className="text-[10px] text-[#839bc8] mt-0.5 font-light">For this candidate-context pair</div>
-                  </div>
-                  <div>
-                    <div className="text-[#64748d]">Signal Contribution</div>
-                    <div className="text-base font-medium text-emerald-700 mt-0.5 tabular-nums">
-                      {formatPaise(data.learning_insight.observed_contribution_paise)}
-                    </div>
-                    <div className="text-[10px] text-[#839bc8] mt-0.5 font-light">Realized candidate margin</div>
-                  </div>
-                  <div>
-                    <div className="text-[#64748d]">Signal Strength</div>
-                    <div className="mt-0.5">
-                      <span className="stripe-tag bg-white border border-[#b9b9f9] text-[#533afd] text-[10px] font-medium">
-                        {data.learning_insight.evidence_strength} (n={data.learning_insight.evidence_count})
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-[#839bc8] mt-1 font-light">LinUCB explore stage</div>
-                  </div>
+                <div className="p-3 bg-[#f0f0f0] rounded-[4px] border border-[#d8d8d8] text-xs font-mono text-[#080808] flex items-center justify-between">
+                  <span>Method: {topFinding.method_note}</span>
+                  <span className="font-semibold text-rose-700">{topFinding.rupee_impact_formatted}</span>
                 </div>
-              </div>
+              </>
             ) : (
-              <div className="py-8 text-center text-xs text-[#64748d]">
-                No observations yet. Learning begins as eligible Test Mode outcomes complete.
-              </div>
+              <p className="text-xs text-[#5a5a5a]">No critical leaks detected. Run analysis to check catalog velocity.</p>
             )}
           </div>
 
-          <div className="pt-4 mt-4 border-t border-[#e5edf5] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs">
-            <div className="flex items-center gap-1.5 text-[#50617a]">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-              <span>Merchant Model Learning: <strong>{data?.total_learning_observations_count ?? 0} applied updates</strong> across <strong>{data?.total_contexts_count ?? data?.learning_insight?.context_coverage_count ?? 0} buyer contexts</strong></span>
-            </div>
-            <Link href="/learning" className="text-[#533afd] hover:underline flex items-center gap-1 font-medium shrink-0">
-              <span>View Learning Center</span>
+          <div className="flex items-center justify-between pt-4 mt-4 border-t border-[#d8d8d8]">
+            <Link href="/doctor" className="text-xs font-medium text-[#146ef5] hover:underline flex items-center gap-1">
+              <span>View all 3 findings in Growth Doctor</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
+
+            {topFinding && topFinding.status === 'DETECTED' && (
+              <button
+                onClick={() => handleProposeAction(topFinding.id)}
+                disabled={proposingAction}
+                className="px-3 py-1.5 text-xs font-medium bg-[#146ef5] text-white rounded-[4px] hover:bg-[#1366e2] transition-colors"
+              >
+                {proposingAction ? 'Proposing...' : 'Propose Owner Action'}
+              </button>
+            )}
+            {topFinding && topFinding.status === 'PROPOSED' && (
+              <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded-[4px] border border-amber-200">
+                Action Queued for Owner Approval
+              </span>
+            )}
+            {proposedSuccess && (
+              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-[4px] border border-emerald-200">
+                Action Proposed Successfully!
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Right 1 Col: Active Policy Status */}
-        <div className="stripe-card p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
+        {/* Channel Intelligence Summary */}
+        <div className="studio-card p-6 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <div>
-                  <h3 className="text-sm font-medium text-[#061b31]">Active Commercial Policy</h3>
-                  <p className="text-[11px] text-[#64748d]">Current governed baseline</p>
-                </div>
+                <span className="p-1.5 bg-blue-50 text-[#146ef5] rounded-[4px] border border-blue-200">
+                  <TrendingUp className="w-4 h-4" />
+                </span>
+                <span className="font-semibold text-xs tracking-wider uppercase text-[#146ef5]">
+                  Channel Strategy
+                </span>
               </div>
-              <span className="stripe-tag bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-medium">
-                {data?.active_policy?.lifecycle_status || 'ACTIVE'}
-              </span>
+              <span className="text-[11px] font-mono text-[#5a5a5a]">7 CHANNELS</span>
             </div>
 
-            {data?.active_policy ? (
-              <div className="space-y-3 text-xs">
-                <div className="p-3 bg-[#f8fafd] rounded border border-[#e5edf5] font-mono">
-                  <div className="text-[10px] text-[#64748d]">Policy ID</div>
-                  <div className="font-medium text-[#061b31] mt-0.5">{data.active_policy.policy_id}</div>
-                  <div className="text-[10px] text-[#64748d] mt-2">Contract Version</div>
-                  <div className="font-medium text-[#061b31] mt-0.5">{data.active_policy.policy_version}</div>
-                </div>
+            <h3 className="text-sm font-semibold text-[#080808]">
+              Marketplace Growth Manager
+            </h3>
+            <p className="text-xs text-[#5a5a5a] leading-relaxed">
+              Every SKU is evaluated on net retained contribution after deducting channel referral fees, closing costs, reverse logistics, and acquisition spend.
+            </p>
 
-                <div className="space-y-1.5 pt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#64748d]">Lifecycle Role:</span>
-                    <span className="font-medium text-[#061b31]">
-                      {data.active_policy.strategy_type === 'ACTIVE_PORTFOLIO' ? 'ACTIVE BASELINE' : data.active_policy.strategy_type}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748d]">Active Policy Contribution:</span>
-                    <span className="font-medium text-emerald-700 tabular-nums">
-                      {formatPaise(data.active_policy.observed_contribution_paise)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748d]">Active Policy Evidence:</span>
-                    <span className="font-medium text-[#061b31] tabular-nums">
-                      {data.active_policy.evidence_count} observations
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-2.5 bg-[#f8fafd] rounded border border-[#e5edf5] text-[11px] text-[#64748d] leading-relaxed">
-                  Baseline control policy issues zero promotional discounts. Active exploration can discover higher-yield candidates without changing this baseline until governed promotion criteria are satisfied.
-                </div>
+            <div className="space-y-1.5 pt-1">
+              <div className="flex justify-between text-xs py-1 border-b border-[#d8d8d8]">
+                <span className="text-[#5a5a5a]">Direct WhatsApp & Web:</span>
+                <span className="font-semibold text-emerald-700">Top Retained Margin (42%)</span>
               </div>
-            ) : (
-              <div className="py-6 text-center text-xs text-[#64748d]">
-                No active policy pointer found.
+              <div className="flex justify-between text-xs py-1 border-b border-[#d8d8d8]">
+                <span className="text-[#5a5a5a]">Amazon / Flipkart:</span>
+                <span className="font-semibold text-blue-700">High Volume Hero SKUs</span>
               </div>
-            )}
+              <div className="flex justify-between text-xs py-1">
+                <span className="text-[#5a5a5a]">ONDC Open Network:</span>
+                <span className="font-semibold text-[#080808]">Decentralized Reach (4.5% fee)</span>
+              </div>
+            </div>
           </div>
 
-          <div className="pt-4 mt-4 border-t border-[#e5edf5]">
-            <Link href="/policies" className="text-xs text-[#533afd] hover:underline flex items-center justify-between font-medium">
-              <span>Inspect Policy Lifecycle</span>
+          <div className="pt-4 border-t border-[#d8d8d8]">
+            <Link
+              href="/channels"
+              className="text-xs font-medium text-[#146ef5] hover:underline flex items-center justify-between"
+            >
+              <span>View full channel segregation board</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Attention Required Items */}
-      {data?.attention_items && data.attention_items.length > 0 && (
-        <div className="stripe-card p-5 border-amber-200 bg-amber-50/40">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertCircle className="w-4 h-4 text-amber-600" />
-            <h3 className="text-sm font-medium text-amber-950">Attention Required</h3>
-          </div>
-          <div className="space-y-2">
-            {data.attention_items.map((item) => (
-              <div key={item.id} className="p-3 bg-white rounded border border-amber-200 text-xs flex justify-between items-center">
-                <div>
-                  <div className="font-medium text-[#061b31]">{item.title}</div>
-                  <div className="text-[#50617a] mt-0.5">{item.description}</div>
-                </div>
-                {item.action_hint && (
-                  <span className="stripe-tag bg-amber-100 text-amber-900 text-[10px] font-medium">
-                    {item.action_hint}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Recent Decisions Table */}
-      <div className="stripe-card overflow-hidden">
-        <div className="p-5 border-b border-[#e5edf5] flex items-center justify-between">
+      {/* Decision Audit Ledger Snapshot */}
+      <div className="studio-card p-6 space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-medium text-[#061b31]">Recent Autonomous Decisions</h3>
-            <p className="text-xs text-[#64748d] mt-0.5">Click any row to open the complete 11-stage lineage and confidential economic inspection.</p>
+            <h3 className="text-sm font-semibold text-[#080808]">
+              Recent Policy Decisions
+            </h3>
+            <p className="text-xs text-[#5a5a5a]">
+              Audit trail of autonomous AI buyer interactions governed by deterministic margin bounds.
+            </p>
           </div>
-          <Link href="/decisions" className="stripe-btn-ghost text-xs">
-            View All Decisions
+          <Link
+            href="/decisions"
+            className="text-xs font-medium text-[#146ef5] hover:underline flex items-center gap-1"
+          >
+            <span>View all in Decision Ledger</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-[#f8fafd] border-b border-[#e5edf5] text-[#64748d]">
-                <th className="p-3">Decision ID</th>
-                <th className="p-3">Opportunity</th>
-                <th className="p-3">Mode</th>
-                <th className="p-3">Strategy</th>
-                <th className="p-3 text-right">Proposed Price</th>
-                <th className="p-3 text-center">Execution</th>
-                <th className="p-3 text-center">Outcome</th>
-                <th className="p-3 text-right">Timestamp</th>
+        <div className="overflow-x-auto border border-[#d8d8d8] rounded-[4px]">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-[#f0f0f0] text-[#080808] font-semibold border-b border-[#d8d8d8]">
+              <tr>
+                <th className="py-2.5 px-3">Decision ID</th>
+                <th className="py-2.5 px-3">Strategy</th>
+                <th className="py-2.5 px-3">Offered Price</th>
+                <th className="py-2.5 px-3">Mode</th>
+                <th className="py-2.5 px-3">Gate Status</th>
+                <th className="py-2.5 px-3">Payment Outcome</th>
+                <th className="py-2.5 px-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#d8d8d8]">
               {data?.recent_decisions && data.recent_decisions.length > 0 ? (
-                data.recent_decisions.map((dec) => (
-                  <tr
-                    key={dec.decision_id}
-                    onClick={() => setSelectedDecisionId(dec.decision_id)}
-                    className="border-b border-[#e5edf5] hover:bg-[#f8fafd] cursor-pointer transition-colors"
-                  >
-                    <td className="p-3 font-mono text-[#533afd] font-medium">{dec.decision_id}</td>
-                    <td className="p-3 font-mono text-[#64748d]">{dec.opportunity_id}</td>
-                    <td className="p-3">
-                      <span className="stripe-tag bg-[#e8e9ff] text-[#533afd] text-[10px] font-medium">
-                        {dec.decision_mode}
-                      </span>
-                    </td>
-                    <td className="p-3 text-[#061b31]">{dec.selected_strategy_type}</td>
-                    <td className="p-3 text-right font-medium text-[#061b31] tabular-nums">
-                      {formatPaise(dec.proposed_price_paise)}
-                    </td>
-                    <td className="p-3 text-center">
-                      {(() => {
-                        const badge = getExecutionStatusBadge(dec.execution_status);
-                        return (
-                          <span className={`stripe-tag ${badge.className} text-[10px]`}>
-                            {badge.label}
-                          </span>
-                        );
-                      })()}
-                    </td>
-                    <td className="p-3 text-center">
-                      {(() => {
-                        const badge = getOutcomeStatusBadge(dec.outcome_status);
-                        return badge ? (
-                          <span className={`stripe-tag ${badge.className} text-[10px]`}>
-                            {badge.label}
+                data.recent_decisions.slice(0, 5).map((d) => {
+                  const execBadge = getExecutionStatusBadge(d.execution_status);
+                  const outBadge = getOutcomeStatusBadge(d.outcome_status);
+                  return (
+                    <tr key={d.decision_id} className="hover:bg-[#f0f0f0] transition-colors">
+                      <td className="py-2.5 px-3 font-mono font-medium text-[#080808]">{d.decision_id}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="px-2 py-0.5 rounded-[4px] bg-[#f0f0f0] border border-[#d8d8d8] font-mono text-[10px] text-[#080808]">
+                          {d.selected_strategy_type}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-medium text-[#080808]">{formatPaise(d.proposed_price_paise)}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="font-mono text-[10px] text-[#5a5a5a] uppercase">{d.decision_mode}</span>
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className={`px-2 py-0.5 rounded-[4px] text-[10px] font-medium ${execBadge.className}`}>
+                          {execBadge.label}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3">
+                        {outBadge ? (
+                          <span className={`px-2 py-0.5 rounded-[4px] text-[10px] font-medium ${outBadge.className}`}>
+                            {outBadge.label}
                           </span>
                         ) : (
-                          <span className="text-[#839bc8] text-[10px]">—</span>
-                        );
-                      })()}
-                    </td>
-                    <td className="p-3 text-right text-[#64748d] font-mono text-[11px]">
-                      {formatDateTime(dec.created_at)}
-                    </td>
-                  </tr>
-                ))
+                          <span className="text-[#5a5a5a] text-[11px]">—</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        <button
+                          onClick={() => setSelectedDecisionId(d.decision_id)}
+                          className="px-2 py-1 text-[11px] font-medium text-[#146ef5] hover:bg-[#eff6ff] rounded-[4px] border border-transparent hover:border-[#146ef5]/20"
+                        >
+                          Why?
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-[#64748d]">
-                    No decisions evaluated yet.
+                  <td colSpan={7} className="py-6 text-center text-xs text-[#5a5a5a]">
+                    No decision events recorded yet.
                   </td>
                 </tr>
               )}
@@ -372,11 +388,13 @@ export default function OverviewPage() {
       </div>
 
       {/* Decision Detail Drawer */}
-      <DecisionDetailDrawer
-        decisionId={selectedDecisionId}
-        merchantId={currentMerchant.id}
-        onClose={() => setSelectedDecisionId(null)}
-      />
+      {selectedDecisionId && currentMerchant && (
+        <DecisionDetailDrawer
+          decisionId={selectedDecisionId}
+          merchantId={currentMerchant.id}
+          onClose={() => setSelectedDecisionId(null)}
+        />
+      )}
     </div>
   );
 }

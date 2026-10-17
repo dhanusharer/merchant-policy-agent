@@ -33,6 +33,7 @@ from domain.models import (
     Product,
     CanonicalDecisionRecord,
     DecisionExecutionRecord,
+    ExecutionRecord,
     Order,
     Payment,
     OutcomeFeedbackRecord,
@@ -404,4 +405,25 @@ async def test_canonical_atlas_demo_fixture_and_fresh_evaluation(live_db: AsyncS
     assert exec_res.razorpay_order_id is not None
     assert exec_res.razorpay_order_id.startswith("order_")
     assert exec_res.authorized_amount_paise == fresh_env.buyer_offer.offered_price_paise
+
+    # Clean up verification artifacts to maintain authoritative demo population invariants
+    from services.execution.concurrency import InventoryReservationManager
+    from sqlalchemy import delete
+
+    p5_rec = await live_db.get(ExecutionRecord, exec_res.phase5_execution_id) if exec_res.phase5_execution_id else None
+    quantities = p5_rec.audit_metadata.get("quantities", {}) if p5_rec and p5_rec.audit_metadata else {}
+    if not quantities:
+        quantities = {pid: 1 for pid in fresh_env.buyer_offer.product_ids}
+    await InventoryReservationManager().release_inventory(live_db, quantities)
+
+    if exec_res.order_id:
+        await live_db.execute(delete(Order).where(Order.id == exec_res.order_id))
+    if exec_res.execution_id:
+        await live_db.execute(delete(DecisionExecutionRecord).where(DecisionExecutionRecord.id == exec_res.execution_id))
+    if exec_res.phase5_execution_id:
+        await live_db.execute(delete(ExecutionRecord).where(ExecutionRecord.id == exec_res.phase5_execution_id))
+    if fresh_env.decision_id:
+        await live_db.execute(delete(CanonicalDecisionRecord).where(CanonicalDecisionRecord.id == fresh_env.decision_id))
+    await live_db.commit()
+
 

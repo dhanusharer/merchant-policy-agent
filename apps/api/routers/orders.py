@@ -85,6 +85,17 @@ async def create_order(
         )
 
 
+@router.get("", response_model=List[OrderResponseSchema], status_code=status.HTTP_200_OK)
+async def list_orders(
+    limit: int = 50,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+    order_svc: OrderService = Depends(get_order_service)
+):
+    """List recent orders with status and payment attempts."""
+    return await order_svc.list_orders(db, limit=limit, offset=offset)
+
+
 @router.get("/{order_id}", response_model=OrderResponseSchema, status_code=status.HTTP_200_OK)
 async def get_order(
     order_id: str,

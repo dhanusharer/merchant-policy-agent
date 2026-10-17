@@ -3,6 +3,7 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from domain.models import Base
+import domain.growth_models  # Ensures all growth models are registered on Base
 from apps.api.core.config import settings
 
 # Configure async engine

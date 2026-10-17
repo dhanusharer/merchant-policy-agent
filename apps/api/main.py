@@ -13,7 +13,8 @@ from apps.api.routers import (
     health, orders, webhooks, merchants, intent, policy, execution,
     buyer_lab, experiments, learning, reward, memory, learning_model, policy_selection,
     policy_safety, policy_exploration, policy_lifecycle, evaluation, decisions, decision_execution, outcomes,
-    observability, dashboard, mcp
+    observability, dashboard, mcp,
+    growth_doctor, marketplace, sales_agent, owner_policy, campaigns, demo_control
 )
 from fastapi.responses import FileResponse
 
@@ -29,9 +30,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Merchant Policy Agent API",
-    description="Autonomous commercial policy learning for merchants selling to AI buyers (Razorpay Buildathon Track 01).",
-    version="0.1.0",
+    title="Merchant Growth Agent API",
+    description="Autonomous commercial policy and channel growth intelligence for independent Indian merchants (HackSprint PS21).",
+    version="0.2.0",
     lifespan=lifespan
 )
 
@@ -73,6 +74,14 @@ app.include_router(decision_execution.router)
 app.include_router(outcomes.router)
 app.include_router(dashboard.router)
 app.include_router(mcp.router)
+
+# Growth Agent Extension Routers
+app.include_router(growth_doctor.router)
+app.include_router(marketplace.router)
+app.include_router(sales_agent.router)
+app.include_router(owner_policy.router)
+app.include_router(campaigns.router)
+app.include_router(demo_control.router)
 
 @app.get("/test-checkout", response_class=FileResponse)
 async def test_checkout_page():

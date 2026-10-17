@@ -136,7 +136,135 @@ export const api = {
 
   // 7. Opportunity Trace
   getTrace: (opportunityId: string, merchantId: string) =>
-    request<OpportunityTrace>(`/api/v1/dashboard/traces/${encodeURIComponent(opportunityId)}?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId)
+    request<OpportunityTrace>(`/api/v1/dashboard/traces/${encodeURIComponent(opportunityId)}?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),
+
+  // 8. Growth Doctor
+  getDoctorFindings: (merchantId: string) =>
+    request<any>(`/api/v1/doctor/findings?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),
+
+  proposeDoctorAction: (merchantId: string, findingId: string) =>
+    request<any>('/api/v1/doctor/actions/propose', {
+      method: 'POST',
+      body: JSON.stringify({ merchant_id: merchantId, finding_id: findingId })
+    }, merchantId),
+
+  // 9. Marketplace Growth Manager
+  getMarketplacePlan: (merchantId: string) =>
+    request<any>(`/api/v1/marketplace/plan?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),
+
+  getChannels: (merchantId: string) =>
+    request<any>(`/api/v1/marketplace/channels?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),
+
+  generateListing: (merchantId: string, productId: string, channelId: string = 'AMAZON') =>
+    request<any>('/api/v1/marketplace/listings/generate', {
+      method: 'POST',
+      body: JSON.stringify({ merchant_id: merchantId, product_id: productId, channel_id: channelId })
+    }, merchantId),
+
+  exportOndc: (merchantId: string, productId: string) =>
+    request<any>('/api/v1/marketplace/export/ondc', {
+      method: 'POST',
+      body: JSON.stringify({ merchant_id: merchantId, product_id: productId })
+    }, merchantId),
+
+  // 10. Sales & Negotiation Agent
+  chatWithAgent: (merchantId: string, message: string, productId?: string, negotiationRound: number = 1, language: string = 'en') =>
+    request<any>('/api/v1/sales-agent/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        merchant_id: merchantId,
+        message,
+        product_id: productId,
+        negotiation_round: negotiationRound,
+        language
+      })
+    }, merchantId),
+
+  // 11. Owner Policy & Approvals
+  parsePolicy: (merchantId: string, text: string) =>
+    request<any>('/api/v1/owner/policy/parse', {
+      method: 'POST',
+      body: JSON.stringify({ merchant_id: merchantId, text })
+    }, merchantId),
+
+  confirmPolicy: (merchantId: string, proposalId: string) =>
+    request<any>('/api/v1/owner/policy/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ merchant_id: merchantId, proposal_id: proposalId })
+    }, merchantId),
+
+  getApprovals: (merchantId: string) =>
+    request<any>(`/api/v1/owner/approvals?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),
+
+  resolveApproval: (merchantId: string, approvalId: string, decision: 'APPROVED' | 'REJECTED') =>
+    request<any>(`/api/v1/owner/approvals/${encodeURIComponent(approvalId)}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify({ merchant_id: merchantId, decision })
+    }, merchantId),
+
+  // 12. Campaigns & Group Deals
+  getContacts: (merchantId: string) =>
+    request<any>(`/api/v1/campaigns/contacts?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),
+
+  optOutContact: (merchantId: string, phone: string) =>
+    request<any>('/api/v1/campaigns/opt-out', {
+      method: 'POST',
+      body: JSON.stringify({ merchant_id: merchantId, phone })
+    }, merchantId),
+
+  getCampaigns: (merchantId: string) =>
+    request<any>(`/api/v1/campaigns?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),
+
+  createCampaign: (merchantId: string, name: string, discountPercent: number, targetSegment: string = 'INACTIVE_60_DAYS') =>
+    request<any>('/api/v1/campaigns/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        merchant_id: merchantId,
+        name,
+        discount_percent: discountPercent,
+        target_segment: targetSegment
+      })
+    }, merchantId),
+
+  dispatchCampaign: (merchantId: string, campaignId: string) =>
+    request<any>(`/api/v1/campaigns/${encodeURIComponent(campaignId)}/dispatch?merchant_id=${encodeURIComponent(merchantId)}`, {
+      method: 'POST'
+    }, merchantId),
+
+  getGroupDeals: (merchantId: string) =>
+    request<any>(`/api/v1/campaigns/group-deals?merchant_id=${encodeURIComponent(merchantId)}`, undefined, merchantId),
+
+  createGroupDeal: (merchantId: string, targetGroupName: string, productId: string, minThresholdUnits: number, discountedPricePaise: number) =>
+    request<any>('/api/v1/campaigns/group-deals/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        merchant_id: merchantId,
+        target_group_name: targetGroupName,
+        product_id: productId,
+        min_threshold_units: minThresholdUnits,
+        discounted_price_paise: discountedPricePaise
+      })
+    }, merchantId),
+
+  pledgeGroupDeal: (dealId: string, units: number = 1) =>
+    request<any>(`/api/v1/campaigns/group-deals/${encodeURIComponent(dealId)}/pledge`, {
+      method: 'POST',
+      body: JSON.stringify({ units })
+    }),
+
+  // 13. Products & Orders
+  getProducts: (merchantId: string) =>
+    request<any>(`/api/v1/merchants/${encodeURIComponent(merchantId)}/products`, undefined, merchantId),
+
+  getOrders: (limit: number = 20, offset: number = 0) =>
+    request<any>(`/api/v1/orders?limit=${limit}&offset=${offset}`),
+
+  // 14. Demo Reset
+  resetDemoData: (merchantId: string) =>
+    request<any>('/api/v1/demo/reset', {
+      method: 'POST',
+      body: JSON.stringify({ merchant_id: merchantId })
+    }, merchantId)
 };
 
 // Utilities for currency, dates, and formatting

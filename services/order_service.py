@@ -1,7 +1,7 @@
 """Application Order Service managing safe creation and lifecycle transitions."""
 
 import uuid
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -128,3 +128,9 @@ class OrderService:
         stmt = select(Order).where(Order.razorpay_order_id == razorpay_order_id)
         result = await db.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def list_orders(self, db: AsyncSession, limit: int = 50, offset: int = 0) -> List[Order]:
+        """Fetch list of orders with pagination."""
+        stmt = select(Order).order_by(Order.created_at.desc()).limit(limit).offset(offset)
+        result = await db.execute(stmt)
+        return list(result.scalars().all())

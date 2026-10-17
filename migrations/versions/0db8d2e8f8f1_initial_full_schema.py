@@ -752,6 +752,205 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_policy_memory_superseded_by'), ['superseded_by'], unique=False)
         batch_op.create_index(batch_op.f('ix_policy_memory_supersedes'), ['supersedes'], unique=False)
 
+    # Growth Agent Tables
+    op.create_table(
+        'growth_doctor_findings',
+        sa.Column('id', sa.String(length=64), nullable=False),
+        sa.Column('merchant_id', sa.String(length=64), nullable=False),
+        sa.Column('category', sa.String(length=32), nullable=False),
+        sa.Column('title', sa.String(length=255), nullable=False),
+        sa.Column('description', sa.Text(), nullable=False),
+        sa.Column('rupee_impact_paise', sa.BigInteger(), nullable=False),
+        sa.Column('confidence', sa.String(length=16), nullable=False),
+        sa.Column('method_note', sa.Text(), nullable=False),
+        sa.Column('evidence_rows_json', sa.JSON(), nullable=False),
+        sa.Column('recommended_action_type', sa.String(length=64), nullable=False),
+        sa.Column('recommended_action_payload', sa.JSON(), nullable=False),
+        sa.Column('status', sa.String(length=32), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+        sa.ForeignKeyConstraint(['merchant_id'], ['merchants.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('growth_doctor_findings', schema=None) as batch_op:
+        batch_op.create_index('ix_growth_doctor_findings_id', ['id'], unique=False)
+        batch_op.create_index('ix_growth_doctor_findings_merchant_id', ['merchant_id'], unique=False)
+        batch_op.create_index('ix_growth_doctor_findings_category', ['category'], unique=False)
+        batch_op.create_index('ix_growth_doctor_findings_status', ['status'], unique=False)
+
+    op.create_table(
+        'channel_configs',
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('merchant_id', sa.String(length=64), nullable=False),
+        sa.Column('channel_id', sa.String(length=32), nullable=False),
+        sa.Column('name', sa.String(length=64), nullable=False),
+        sa.Column('fee_percent', sa.Numeric(precision=5, scale=2), nullable=False),
+        sa.Column('fixed_fee_paise', sa.BigInteger(), nullable=False),
+        sa.Column('shipping_base_paise', sa.BigInteger(), nullable=False),
+        sa.Column('return_rate_percent', sa.Numeric(precision=5, scale=2), nullable=False),
+        sa.Column('return_cost_paise', sa.BigInteger(), nullable=False),
+        sa.Column('ad_cost_paise', sa.BigInteger(), nullable=False),
+        sa.Column('verification_status', sa.String(length=16), nullable=False),
+        sa.Column('audience_fit', sa.String(length=128), nullable=False),
+        sa.Column('is_active', sa.Boolean(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+        sa.ForeignKeyConstraint(['merchant_id'], ['merchants.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('merchant_id', 'channel_id', name='uq_channel_config_merchant_channel')
+    )
+    with op.batch_alter_table('channel_configs', schema=None) as batch_op:
+        batch_op.create_index('ix_channel_configs_merchant_id', ['merchant_id'], unique=False)
+        batch_op.create_index('ix_channel_configs_channel_id', ['channel_id'], unique=False)
+
+    op.create_table(
+        'sku_channel_decisions',
+        sa.Column('id', sa.String(length=64), nullable=False),
+        sa.Column('merchant_id', sa.String(length=64), nullable=False),
+        sa.Column('product_id', sa.String(length=64), nullable=False),
+        sa.Column('sku', sa.String(length=64), nullable=False),
+        sa.Column('channel_id', sa.String(length=32), nullable=False),
+        sa.Column('decision', sa.String(length=32), nullable=False),
+        sa.Column('selling_price_paise', sa.BigInteger(), nullable=False),
+        sa.Column('cogs_paise', sa.BigInteger(), nullable=False),
+        sa.Column('estimated_fees_paise', sa.BigInteger(), nullable=False),
+        sa.Column('estimated_shipping_paise', sa.BigInteger(), nullable=False),
+        sa.Column('expected_return_cost_paise', sa.BigInteger(), nullable=False),
+        sa.Column('estimated_ad_cost_paise', sa.BigInteger(), nullable=False),
+        sa.Column('net_contribution_paise', sa.BigInteger(), nullable=False),
+        sa.Column('margin_percent', sa.Numeric(precision=5, scale=2), nullable=False),
+        sa.Column('rationale', sa.Text(), nullable=False),
+        sa.Column('confidence', sa.String(length=16), nullable=False),
+        sa.Column('is_published', sa.Boolean(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+        sa.ForeignKeyConstraint(['merchant_id'], ['merchants.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(['product_id'], ['products.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('merchant_id', 'product_id', 'channel_id', name='uq_sku_channel_decision')
+    )
+    with op.batch_alter_table('sku_channel_decisions', schema=None) as batch_op:
+        batch_op.create_index('ix_sku_channel_decisions_id', ['id'], unique=False)
+        batch_op.create_index('ix_sku_channel_decisions_merchant_id', ['merchant_id'], unique=False)
+        batch_op.create_index('ix_sku_channel_decisions_product_id', ['product_id'], unique=False)
+        batch_op.create_index('ix_sku_channel_decisions_sku', ['sku'], unique=False)
+        batch_op.create_index('ix_sku_channel_decisions_channel_id', ['channel_id'], unique=False)
+        batch_op.create_index('ix_sku_channel_decisions_decision', ['decision'], unique=False)
+
+    op.create_table(
+        'owner_policy_proposals',
+        sa.Column('id', sa.String(length=64), nullable=False),
+        sa.Column('merchant_id', sa.String(length=64), nullable=False),
+        sa.Column('raw_input_text', sa.Text(), nullable=False),
+        sa.Column('parsed_policy_json', sa.JSON(), nullable=False),
+        sa.Column('clarification_needed', sa.Text(), nullable=True),
+        sa.Column('status', sa.String(length=32), nullable=False),
+        sa.Column('confirmed_by', sa.String(length=64), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+        sa.Column('confirmed_at', sa.DateTime(timezone=True), nullable=True),
+        sa.ForeignKeyConstraint(['merchant_id'], ['merchants.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('owner_policy_proposals', schema=None) as batch_op:
+        batch_op.create_index('ix_owner_policy_proposals_id', ['id'], unique=False)
+        batch_op.create_index('ix_owner_policy_proposals_merchant_id', ['merchant_id'], unique=False)
+        batch_op.create_index('ix_owner_policy_proposals_status', ['status'], unique=False)
+
+    op.create_table(
+        'owner_approval_items',
+        sa.Column('id', sa.String(length=64), nullable=False),
+        sa.Column('merchant_id', sa.String(length=64), nullable=False),
+        sa.Column('action_type', sa.String(length=32), nullable=False),
+        sa.Column('title', sa.String(length=255), nullable=False),
+        sa.Column('description', sa.Text(), nullable=False),
+        sa.Column('payload_json', sa.JSON(), nullable=False),
+        sa.Column('status', sa.String(length=32), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+        sa.Column('resolved_at', sa.DateTime(timezone=True), nullable=True),
+        sa.ForeignKeyConstraint(['merchant_id'], ['merchants.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('owner_approval_items', schema=None) as batch_op:
+        batch_op.create_index('ix_owner_approval_items_id', ['id'], unique=False)
+        batch_op.create_index('ix_owner_approval_items_merchant_id', ['merchant_id'], unique=False)
+        batch_op.create_index('ix_owner_approval_items_action_type', ['action_type'], unique=False)
+        batch_op.create_index('ix_owner_approval_items_status', ['status'], unique=False)
+
+    op.create_table(
+        'customer_contacts',
+        sa.Column('id', sa.String(length=64), nullable=False),
+        sa.Column('merchant_id', sa.String(length=64), nullable=False),
+        sa.Column('name', sa.String(length=128), nullable=False),
+        sa.Column('phone', sa.String(length=32), nullable=False),
+        sa.Column('email', sa.String(length=128), nullable=True),
+        sa.Column('is_opted_in', sa.Boolean(), nullable=False),
+        sa.Column('last_order_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('total_orders_count', sa.Integer(), nullable=False),
+        sa.Column('total_spend_paise', sa.BigInteger(), nullable=False),
+        sa.Column('preferred_category', sa.String(length=64), nullable=True),
+        sa.Column('opt_out_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+        sa.ForeignKeyConstraint(['merchant_id'], ['merchants.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('merchant_id', 'phone', name='uq_customer_contact_merchant_phone')
+    )
+    with op.batch_alter_table('customer_contacts', schema=None) as batch_op:
+        batch_op.create_index('ix_customer_contacts_id', ['id'], unique=False)
+        batch_op.create_index('ix_customer_contacts_merchant_id', ['merchant_id'], unique=False)
+        batch_op.create_index('ix_customer_contacts_phone', ['phone'], unique=False)
+        batch_op.create_index('ix_customer_contacts_is_opted_in', ['is_opted_in'], unique=False)
+
+    op.create_table(
+        'growth_campaigns',
+        sa.Column('id', sa.String(length=64), nullable=False),
+        sa.Column('merchant_id', sa.String(length=64), nullable=False),
+        sa.Column('name', sa.String(length=128), nullable=False),
+        sa.Column('campaign_type', sa.String(length=32), nullable=False),
+        sa.Column('target_segment', sa.String(length=64), nullable=False),
+        sa.Column('message_template', sa.Text(), nullable=False),
+        sa.Column('offered_discount_percent', sa.Numeric(precision=5, scale=2), nullable=False),
+        sa.Column('target_sku', sa.String(length=64), nullable=True),
+        sa.Column('recipient_count', sa.Integer(), nullable=False),
+        sa.Column('status', sa.String(length=32), nullable=False),
+        sa.Column('is_simulated', sa.Boolean(), nullable=False),
+        sa.Column('simulated_opens', sa.Integer(), nullable=False),
+        sa.Column('simulated_conversions', sa.Integer(), nullable=False),
+        sa.Column('simulated_revenue_paise', sa.BigInteger(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+        sa.Column('dispatched_at', sa.DateTime(timezone=True), nullable=True),
+        sa.ForeignKeyConstraint(['merchant_id'], ['merchants.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('growth_campaigns', schema=None) as batch_op:
+        batch_op.create_index('ix_growth_campaigns_id', ['id'], unique=False)
+        batch_op.create_index('ix_growth_campaigns_merchant_id', ['merchant_id'], unique=False)
+        batch_op.create_index('ix_growth_campaigns_status', ['status'], unique=False)
+
+    op.create_table(
+        'community_group_deals',
+        sa.Column('id', sa.String(length=64), nullable=False),
+        sa.Column('merchant_id', sa.String(length=64), nullable=False),
+        sa.Column('deal_code', sa.String(length=32), nullable=False),
+        sa.Column('target_group_name', sa.String(length=128), nullable=False),
+        sa.Column('product_id', sa.String(length=64), nullable=False),
+        sa.Column('min_threshold_units', sa.Integer(), nullable=False),
+        sa.Column('current_pledged_units', sa.Integer(), nullable=False),
+        sa.Column('base_price_paise', sa.BigInteger(), nullable=False),
+        sa.Column('discounted_price_paise', sa.BigInteger(), nullable=False),
+        sa.Column('gross_margin_percent', sa.Numeric(precision=5, scale=2), nullable=False),
+        sa.Column('status', sa.String(length=32), nullable=False),
+        sa.Column('is_simulated', sa.Boolean(), nullable=False),
+        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+        sa.ForeignKeyConstraint(['merchant_id'], ['merchants.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(['product_id'], ['products.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('community_group_deals', schema=None) as batch_op:
+        batch_op.create_index('ix_community_group_deals_id', ['id'], unique=False)
+        batch_op.create_index('ix_community_group_deals_merchant_id', ['merchant_id'], unique=False)
+        batch_op.create_index('ix_community_group_deals_deal_code', ['deal_code'], unique=True)
+        batch_op.create_index('ix_community_group_deals_product_id', ['product_id'], unique=False)
+        batch_op.create_index('ix_community_group_deals_status', ['status'], unique=False)
+
     # ### end Alembic commands ###
 
 

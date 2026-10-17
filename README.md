@@ -1,40 +1,34 @@
 <div align="center">
 
-# 🛒 Merchant Policy Agent
-### *Autonomous Commercial Intelligence for the Agentic Commerce Era*
+# 🛒 Merchant Growth Agent
+### *Autonomous Commercial Intelligence, Multi-Channel Economics & Safe Growth for Independent Indian Merchants*
 
-[![Razorpay AI Buildathon 2026](https://img.shields.io/badge/Razorpay_AI_Buildathon_2026-Track_01:_Agentic_Commerce-0C2340?style=for-the-badge&logo=razorpay&logoColor=3395FF)](https://razorpay.com)
-[![Tests Passing](https://img.shields.io/badge/Tests-942%20Passed%20(100%25)-00C853?style=for-the-badge&logo=pytest&logoColor=white)](docs/verification.md)
-[![Unit Tests](https://img.shields.io/badge/Unit_Tests-562%20Hermetic-00E676?style=for-the-badge&logo=pytest&logoColor=white)](docs/verification.md)
-[![Integration Tests](https://img.shields.io/badge/Integration_Tests-380%20Passed-00B0FF?style=for-the-badge&logo=pytest&logoColor=white)](docs/verification.md)
+[![HackSprint PS21](https://img.shields.io/badge/HackSprint_PS21-FinTech_%26_Smart_Commerce-0C2340?style=for-the-badge&logo=razorpay&logoColor=3395FF)](https://razorpay.com)
+[![Tests Passing](https://img.shields.io/badge/Tests-962%20Passed%20(100%25)-00C853?style=for-the-badge&logo=pytest&logoColor=white)](docs/implementation-status.md)
+[![Unit Tests](https://img.shields.io/badge/Unit_Tests-578%20Hermetic-00E676?style=for-the-badge&logo=pytest&logoColor=white)](docs/implementation-status.md)
+[![Integration Tests](https://img.shields.io/badge/Integration_Tests-384%20Passed-00B0FF?style=for-the-badge&logo=pytest&logoColor=white)](docs/implementation-status.md)
 [![MCP 2026](https://img.shields.io/badge/MCP-2026_Compliant-blueviolet?style=for-the-badge&logo=anthropic&logoColor=white)](docs/mcp-specification.md)
-[![Release Candidate](https://img.shields.io/badge/Release_Candidate-v1.0.0--rc-651FFF?style=for-the-badge&logo=git&logoColor=white)](https://github.com/dhanusharer/merchant-policy-agent)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.3.4-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 
 <br/>
 
-**Enables merchants to negotiate and sell profitably to autonomous AI buyer agents — validated by deterministic guardrails, Model Context Protocol (MCP), and closed-loop Razorpay financial truth.**
+**Helps independent Indian merchants (fashion, bags, accessories, gifts) sell safely, identify profit leaks, choose profitable digital channels (Amazon, Flipkart, Meesho, Direct WhatsApp, Google Local, Instagram, ONDC), and recover repeat direct sales with deterministic margin and payment guardrails.**
 
 ```text
-LLM Proposes ➔ Code Validates ➔ Code Executes ➔ Razorpay Reports ➔ Agent Learns
+Doctor Diagnoses ➔ Channels Evaluated ➔ Owner Approves ➔ Agent Negotiates ➔ Razorpay Executes ➔ Model Learns
 ```
 
 <br/>
 
 [Executive Summary](#-executive-summary) •
-[Core Invariants](#-golden-architectural-invariants) •
-[MCP AI Buyer](#-external-ai-buyer--mcp-commerce-interface) •
-[Architecture](#-system-architecture) •
-[Quickstart (60s)](#-quickstart--verification) •
-[Razorpay Closed Loop](#-razorpay-closed-loop-integration) •
-[Control Center UI](#-operator-control-center) •
-[Documentation Index](#-core-documentation-index)
-
-<br/>
-
-<img src="submission/screenshots/overview_dashboard.png" alt="Merchant AI Control Center Overview Dashboard" width="100%" style="border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);" />
+[Growth Doctor](#-growth-doctor-diagnostics) •
+[Marketplace Economics](#-marketplace-growth-manager) •
+[Sales Agent](#-multilingual-sales--negotiation-agent) •
+[Owner Policies](#-owner-policy-formulation--approval-queue) •
+[Win-Back Campaigns](#-customer-win-back-campaigns) •
+[Quickstart (60s)](#-quickstart--verification)
 
 </div>
 

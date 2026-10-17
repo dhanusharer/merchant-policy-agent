@@ -41,10 +41,20 @@ function getHumanStrategyName(strategyType?: string | null, isActiveBaseline?: b
 export default function PoliciesPage() {
   const { currentMerchant } = useMerchant();
   const [data, setData] = useState<PolicyManagement | null>(null);
+  const [approvals, setApprovals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Owner Policy Formulation State
+  const [policyInputText, setPolicyInputText] = useState(
+    'Never sell below 18% margin, no more than 10% discount, do not discount new arrivals, clear old stock first, and ask my approval for discounts above 5%.'
+  );
+  const [parsedProposal, setParsedProposal] = useState<any | null>(null);
+  const [parsingPolicy, setParsingPolicy] = useState(false);
+  const [confirmingPolicy, setConfirmingPolicy] = useState(false);
+  const [resolvingApprovalId, setResolvingApprovalId] = useState<string | null>(null);
 
   // Modal State
   const [modalType, setModalType] = useState<'PROMOTE' | 'ROLLBACK' | null>(null);
@@ -56,10 +66,58 @@ export default function PoliciesPage() {
   const loadPolicies = () => {
     setLoading(true);
     setError(null);
-    api.getPolicies(currentMerchant.id)
-      .then((res) => setData(res))
+    Promise.all([
+      api.getPolicies(currentMerchant.id),
+      api.getApprovals(currentMerchant.id).catch(() => ({ approvals: [] }))
+    ])
+      .then(([polRes, apprRes]) => {
+        setData(polRes);
+        setApprovals(apprRes.approvals || []);
+      })
       .catch((err) => setError(err.message || 'Failed to load policy management'))
       .finally(() => setLoading(false));
+  };
+
+  const handleParsePolicy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!policyInputText.trim()) return;
+    setParsingPolicy(true);
+    try {
+      const prop = await api.parsePolicy(currentMerchant.id, policyInputText);
+      setParsedProposal(prop);
+    } catch (err: any) {
+      alert('Policy parse failed: ' + err.message);
+    } finally {
+      setParsingPolicy(false);
+    }
+  };
+
+  const handleConfirmPolicy = async () => {
+    if (!parsedProposal?.proposal_id) return;
+    setConfirmingPolicy(true);
+    try {
+      await api.confirmPolicy(currentMerchant.id, parsedProposal.proposal_id);
+      setActionSuccess('Policy confirmed and active! Minimum margin and discount bounds updated.');
+      setParsedProposal(null);
+      loadPolicies();
+    } catch (err: any) {
+      alert('Policy confirmation failed: ' + err.message);
+    } finally {
+      setConfirmingPolicy(false);
+    }
+  };
+
+  const handleResolveApproval = async (approvalId: string, decision: 'APPROVED' | 'REJECTED') => {
+    setResolvingApprovalId(approvalId);
+    try {
+      await api.resolveApproval(currentMerchant.id, approvalId, decision);
+      setActionSuccess(`Approval item ${approvalId} marked as ${decision}.`);
+      loadPolicies();
+    } catch (err: any) {
+      alert('Failed to resolve approval: ' + err.message);
+    } finally {
+      setResolvingApprovalId(null);
+    }
   };
 
   useEffect(() => {
@@ -168,6 +226,147 @@ export default function PoliciesPage() {
           {error}
         </div>
       )}
+
+      {/* 0. Owner Policy Setup & Approvals Queue */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Natural Language Policy Input (Col 7) */}
+        <div className="lg:col-span-7 studio-card p-6 space-y-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[10px] font-semibold text-[#146ef5] bg-[#eff6ff] px-2 py-0.5 rounded-[4px] border border-[#146ef5]/20">
+                PROPOSAL GATE
+              </span>
+              <span className="text-xs text-[#5a5a5a]">Explicit Confirmation Invariant</span>
+            </div>
+            <h3 className="text-base font-semibold text-[#080808] mt-1">
+              Merchant Commercial Policy Setup
+            </h3>
+            <p className="text-xs text-[#5a5a5a] mt-0.5">
+              Enter your commercial strategy in natural language. A strict schema is parsed, but nothing activates until you review and confirm.
+            </p>
+          </div>
+
+          <form onSubmit={handleParsePolicy} className="space-y-3">
+            <textarea
+              rows={3}
+              value={policyInputText}
+              onChange={(e) => setPolicyInputText(e.target.value)}
+              className="w-full studio-input p-3 text-xs text-[#080808] leading-relaxed"
+              placeholder="e.g. Never sell below 18% margin, no more than 10% discount, do not discount new arrivals, clear old stock first, and ask my approval for discounts above 5%."
+            />
+
+            <div className="flex justify-between items-center">
+              <span className="text-[11px] text-[#5a5a5a]">
+                Validates margin floor &ge; 10%, discount ceiling &le; 30%.
+              </span>
+              <button
+                type="submit"
+                disabled={parsingPolicy || !policyInputText.trim()}
+                className="btn-primary px-4 py-1.5 text-xs font-semibold disabled:opacity-50"
+              >
+                {parsingPolicy ? 'Parsing...' : 'Parse Commercial Policy'}
+              </button>
+            </div>
+          </form>
+
+          {parsedProposal && (
+            <div className="p-4 bg-[#eff6ff] border border-[#146ef5]/30 rounded-[6px] space-y-3 mt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#146ef5] flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-[#146ef5]" />
+                  <span>Parsed Policy Proposal (Pending Confirmation)</span>
+                </span>
+                <span className="font-mono text-[10px] text-[#5a5a5a]">{parsedProposal.proposal_id}</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                <div className="p-2.5 bg-white border border-[#d8d8d8] rounded-[4px]">
+                  <span className="text-[10px] text-[#5a5a5a] block uppercase font-medium">Margin Floor</span>
+                  <span className="font-bold text-[#080808] text-sm">
+                    {parsedProposal.parsed_policy?.minimum_margin_percent}%
+                  </span>
+                </div>
+                <div className="p-2.5 bg-white border border-[#d8d8d8] rounded-[4px]">
+                  <span className="text-[10px] text-[#5a5a5a] block uppercase font-medium">Max Discount</span>
+                  <span className="font-bold text-[#080808] text-sm">
+                    {parsedProposal.parsed_policy?.maximum_discount_percent}%
+                  </span>
+                </div>
+                <div className="p-2.5 bg-white border border-[#d8d8d8] rounded-[4px]">
+                  <span className="text-[10px] text-[#5a5a5a] block uppercase font-medium">Approval Over</span>
+                  <span className="font-bold text-[#080808] text-sm">
+                    {parsedProposal.parsed_policy?.approval_threshold_percent}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-[#146ef5]/20">
+                <span className="text-[11px] text-[#5a5a5a]">
+                  Requires explicit owner authorization to activate.
+                </span>
+                <button
+                  onClick={handleConfirmPolicy}
+                  disabled={confirmingPolicy}
+                  className="px-4 py-1.5 text-xs font-semibold bg-[#146ef5] text-white rounded-[4px] hover:bg-[#1366e2] disabled:opacity-50"
+                >
+                  {confirmingPolicy ? 'Activating...' : 'Confirm & Activate Policy'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Pending Approvals Queue (Col 5) */}
+        <div className="lg:col-span-5 studio-card p-6 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-[#d8d8d8]">
+            <div>
+              <h3 className="text-sm font-semibold text-[#080808]">Pending Owner Approvals</h3>
+              <p className="text-xs text-[#5a5a5a]">Actions requiring your explicit sign-off</p>
+            </div>
+            <span className="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-[4px]">
+              {approvals.length} Pending
+            </span>
+          </div>
+
+          <div className="space-y-3 max-h-72 overflow-y-auto">
+            {approvals.length > 0 ? (
+              approvals.map((a) => (
+                <div key={a.id} className="p-3 border border-[#d8d8d8] rounded-[4px] bg-[#ffffff] space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-[#080808]">{a.title}</span>
+                    <span className="font-mono text-[9px] px-1.5 py-0.5 bg-[#f0f0f0] rounded text-[#5a5a5a]">
+                      {a.action_type}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#5a5a5a] leading-tight">
+                    {a.description}
+                  </p>
+                  <div className="flex justify-end gap-2 pt-1 border-t border-[#d8d8d8]">
+                    <button
+                      onClick={() => handleResolveApproval(a.id, 'REJECTED')}
+                      disabled={resolvingApprovalId === a.id}
+                      className="px-2.5 py-1 text-[11px] font-medium border border-[#d8d8d8] text-[#5a5a5a] rounded hover:bg-[#f0f0f0]"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={() => handleResolveApproval(a.id, 'APPROVED')}
+                      disabled={resolvingApprovalId === a.id}
+                      className="px-2.5 py-1 text-[11px] font-semibold bg-[#146ef5] text-white rounded hover:bg-[#1366e2]"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-8 text-center text-xs text-[#5a5a5a]">
+                No pending approval requests.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* 1. Active Policy Status Card */}
       <div className="stripe-card p-6 bg-gradient-to-r from-white to-[#f8fafd] border border-[#e5edf5] rounded-xl shadow-xs">

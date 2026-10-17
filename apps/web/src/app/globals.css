@@ -1,147 +1,239 @@
 @import "tailwindcss";
 
 @theme {
-  --color-indigo-ink: #533afd;
-  --color-indigo-hover: #7389ff;
-  --color-midnight-ink: #061b31;
-  --color-slate: #64748d;
-  --color-steel: #50617a;
-  --color-smoke: #839bc8;
-  --color-pure-white: #ffffff;
-  --color-mist: #f8fafd;
-  --color-frost: #e5edf5;
-  --color-lavender-border: #b9b9f9;
-  --color-lilac-border: #d6d9fc;
-  --color-periwinkle-wash: #e8e9ff;
-  --color-deep-violet: #182659;
-  --color-amethyst-edge: #7f71e6;
+  --color-accent: #146ef5;
+  --color-accent-hover: #1366e2;
+  --color-ink: #080808;
+  --color-text-secondary: #5a5a5a;
+  --color-border: #d8d8d8;
+  --color-muted: #bdbdbd;
+  --color-tint: #f0f0f0;
+  --color-surface: #ffffff;
+  --color-inverted: #080808;
 
-  --text-caption: 12px;
-  --leading-caption: 1.45;
-  --tracking-caption: -0.12px;
-  --text-body-sm: 14px;
-  --leading-body-sm: 1.4;
-  --tracking-body-sm: -0.14px;
-  --text-body: 16px;
-  --leading-body: 1.2;
-  --tracking-body: -0.16px;
-  --text-body-lg: 20px;
-  --leading-body-lg: 1.4;
-  --tracking-body-lg: -0.2px;
-  --text-subheading: 22px;
-  --leading-subheading: 1.1;
-  --tracking-subheading: -0.22px;
-  --text-heading-sm: 26px;
-  --leading-heading-sm: 1.12;
-  --tracking-heading-sm: -0.26px;
-  --text-heading: 32px;
-  --leading-heading: 1.1;
-  --tracking-heading: -0.64px;
-  --text-heading-lg: 48px;
-  --leading-heading-lg: 1.03;
-  --tracking-heading-lg: -0.96px;
-  --text-display: 56px;
-  --leading-display: 1.03;
-  --tracking-display: -1.4px;
-
-  --spacing-8: 8px;
-  --spacing-16: 16px;
-  --spacing-24: 24px;
-  --spacing-32: 32px;
-  --spacing-40: 40px;
-  --spacing-48: 48px;
-  --spacing-64: 64px;
-  --spacing-80: 80px;
-  --spacing-96: 96px;
-
-  --radius-md: 4px;
+  /* Steep Tokens */
+  --color-ink-black: #17191c;
+  --color-paper-white: #ffffff;
+  --color-mist-gray: #f2f2f3;
+  --color-fog-white: #fafafb;
+  --color-slate-gray: #777b86;
+  --color-ash-gray: #979799;
+  --color-smoke-gray: #a3a6af;
+  --color-blush-peach: #fbe1d1;
+  --color-sienna-brown: #5d2a1a;
 }
 
 :root {
-  --color-indigo-ink: #533afd;
-  --color-indigo-hover: #7389ff;
-  --color-midnight-ink: #061b31;
-  --color-slate: #64748d;
-  --color-steel: #50617a;
-  --color-smoke: #839bc8;
-  --color-pure-white: #ffffff;
-  --color-mist: #f8fafd;
-  --color-frost: #e5edf5;
-  --color-lavender-border: #b9b9f9;
-  --color-lilac-border: #d6d9fc;
-  --color-periwinkle-wash: #e8e9ff;
-  --color-deep-violet: #182659;
-  --color-amethyst-edge: #7f71e6;
+  --color-accent: #146ef5;
+  --color-accent-hover: #1366e2;
+  --color-ink: #080808;
+  --color-text-secondary: #5a5a5a;
+  --color-border: #d8d8d8;
+  --color-muted: #bdbdbd;
+  --color-tint: #f0f0f0;
+  --color-surface: #ffffff;
+  --color-inverted: #080808;
+
+  /* Steep Palette */
+  --color-ink-black: #17191c;
+  --color-paper-white: #ffffff;
+  --color-mist-gray: #f2f2f3;
+  --color-fog-white: #fafafb;
+  --color-slate-gray: #777b86;
+  --color-ash-gray: #979799;
+  --color-smoke-gray: #a3a6af;
+  --color-blush-peach: #fbe1d1;
+  --color-sienna-brown: #5d2a1a;
+
+  --font-serif: "Signifier", "GT Sectra", "Tiempos Headline", "Source Serif 4", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: "Söhne", Inter, Satoshi, "General Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-18: 72px;
+  --space-20: 80px;
+
+  --radius-control: 4px;
+  --radius-card: 8px;
 
   font-feature-settings: "ss01" on, "tnum" on;
 }
 
 body {
   background-color: #ffffff;
-  color: #061b31;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #080808;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Stripe Design Tokens & Helper Classes */
-.stripe-card {
+/* Steep Style Components */
+.steep-serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.steep-card {
+  background-color: #f2f2f3;
+  border-radius: 24px;
+}
+
+.steep-peach-card {
+  background-color: #fbe1d1;
+  color: #5d2a1a;
+  border-radius: 24px;
+}
+
+.steep-artifact {
   background-color: #ffffff;
-  border: 1px solid #e5edf5;
-  border-radius: 4px;
+  border-radius: 20px;
+  box-shadow: 0 0 0 1px rgba(4, 23, 43, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.06);
+}
+
+.steep-pill-filled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #17191c;
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 10px 22px;
+  font-size: 15px;
+  font-weight: 450;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.steep-pill-filled:hover {
+  opacity: 0.92;
+}
+
+.steep-pill-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: transparent;
+  color: #17191c;
+  border: 1px solid #17191c;
+  border-radius: 9999px;
+  padding: 10px 22px;
+  font-size: 15px;
+  font-weight: 450;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.steep-pill-ghost:hover {
+  background-color: rgba(23, 25, 28, 0.05);
+}
+
+/* Webflow-inspired Studio Cards */
+.studio-card {
+  background-color: #ffffff;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
   transition: border-color 0.15s ease;
 }
 
-.stripe-card:hover {
-  border-color: #d6d9fc;
+.studio-card:hover {
+  border-color: #bdbdbd;
 }
 
-.stripe-btn-primary {
-  background-color: #533afd;
+/* Primary Action Blue */
+.btn-primary {
+  background-color: #146ef5;
   color: #ffffff;
   border-radius: 4px;
-  font-size: 14px;
-  font-weight: 400;
-  padding: 8px 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  font-weight: 500;
   transition: background-color 0.15s ease;
 }
 
-.stripe-btn-primary:hover {
-  background-color: #7389ff;
+.btn-primary:hover {
+  background-color: #1366e2;
 }
 
-.stripe-btn-ghost {
-  background-color: transparent;
-  color: #533afd;
-  border: 1px solid #b9b9f9;
+.btn-secondary {
+  background-color: #ffffff;
+  color: #080808;
+  border: 1px solid #d8d8d8;
   border-radius: 4px;
-  font-size: 14px;
-  font-weight: 400;
-  padding: 7px 15px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  font-weight: 500;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.stripe-btn-ghost:hover {
-  border-color: #533afd;
-  background-color: #f8fafd;
+.btn-secondary:hover {
+  background-color: #f0f0f0;
+  border-color: #bdbdbd;
 }
 
-.stripe-tag {
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 400;
-  padding: 2px 10px;
-  display: inline-flex;
-  align-items: center;
-  letter-spacing: 0.2px;
+.studio-input {
+  background-color: #ffffff;
+  border: 1px solid #d8d8d8;
+  border-radius: 4px;
+  color: #080808;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
+.studio-input:focus {
+  outline: none;
+  border-color: #146ef5;
+  box-shadow: 0 0 0 1px #146ef5;
+}
+
+/* Semantic Badges */
+.badge-verified {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-warning {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.badge-danger {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.badge-info {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-sample {
+  background-color: #f0f0f0;
+  color: #5a5a5a;
+  border: 1px solid #d8d8d8;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d8d8d8;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bdbdbd;
 }

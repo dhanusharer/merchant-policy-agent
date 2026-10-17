@@ -114,6 +114,7 @@ async def reset_demo_merchants(db: AsyncSession, merchant_ids: List[str]) -> Non
         await db.execute(delete(PolicyMemoryRecord).where(PolicyMemoryRecord.merchant_id == m_id))
         await db.execute(delete(OutcomeFeedbackRecord).where(OutcomeFeedbackRecord.merchant_id == m_id))
         await db.execute(delete(DecisionExecutionRecord).where(DecisionExecutionRecord.merchant_id == m_id))
+        await db.execute(delete(ExecutionRecord).where(ExecutionRecord.merchant_id == m_id))
         await db.execute(delete(CanonicalDecisionRecord).where(CanonicalDecisionRecord.merchant_id == m_id))
         await db.execute(delete(ExplorationDecisionRecord).where(ExplorationDecisionRecord.merchant_id == m_id))
         await db.execute(delete(PolicySafetyRecord).where(PolicySafetyRecord.merchant_id == m_id))

@@ -24,7 +24,8 @@ import {
   DollarSign,
   MessageSquare,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Target
 } from 'lucide-react';
 import { useMerchant, PRESET_MERCHANTS } from '@/lib/MerchantContext';
 import { api, formatPaise, formatPercent } from '@/lib/api';
@@ -855,116 +856,169 @@ export default function OverviewPage() {
       {/* SECTION 2: Todays Strategies                                   */}
       {/* Autonomous growth actions prioritized for maximum profit today  */}
       {/* ============================================================== */}
-      <div className="bg-white border border-[#e4e4e7] rounded-xl p-5 sm:p-6 shadow-xs space-y-4">
+      {/* ============================================================== */}
+      {/* SECTION 2: Todays Strategies                                   */}
+      {/* Autonomous growth actions prioritized for maximum profit today  */}
+      {/* ============================================================== */}
+      <div className="bg-white border border-[#e4e4e7] rounded-xl shadow-xs overflow-hidden">
         
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#f4f4f5]">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-[#f4f4f5] text-[#18181b]">
-                <Sparkles className="w-4 h-4" />
-              </span>
-              <h2 className="text-lg sm:text-xl font-bold text-[#09090b] tracking-tight">
-                Todays Strategies
-              </h2>
+        {/* Distinct Professional Header with Subtle Contrast Tint & Clear Bottom Border */}
+        <div className="bg-[#fafafa] border-b border-[#e4e4e7] p-4 sm:px-6 sm:py-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-[#18181b] text-white shadow-2xs shrink-0 flex items-center justify-center">
+              <Target className="w-4 h-4 text-emerald-400" />
             </div>
-            <p className="text-xs text-[#71717a] mt-0.5">
-              Autonomous Growth Intelligence: 3 high-impact commercial levers prioritized for maximum profit today.
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-bold text-[#09090b] tracking-tight">
+                  Todays Strategies
+                </h2>
+                <span className="text-[10px] font-mono font-bold text-[#52525b] bg-white px-2 py-0.5 rounded border border-[#e4e4e7] uppercase tracking-wider shadow-2xs">
+                  AUTONOMOUS EXECUTION
+                </span>
+              </div>
+              <p className="text-xs text-[#71717a] mt-0.5">
+                Autonomous Growth Intelligence: 3 high-impact commercial levers prioritized for maximum profit today.
+              </p>
+            </div>
           </div>
 
-          <span className="text-[11px] font-mono text-[#52525b] bg-[#f4f4f5] px-2.5 py-1 rounded-md border border-[#e4e4e7] font-semibold self-start sm:self-auto flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-            <span>3 Strategies Active</span>
-          </span>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-[11px] font-mono text-[#52525b] bg-white px-2.5 py-1 rounded-md border border-[#e4e4e7] font-semibold flex items-center gap-1.5 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+              <span>3 Strategies Active</span>
+            </span>
+          </div>
         </div>
 
-        {/* 3 Actionable Strategies Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          
-          {/* Strategy 1: Price Optimization */}
-          <div className="p-4.5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] transition-all space-y-3 flex flex-col justify-between shadow-2xs">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 uppercase tracking-wider">
-                  PRICE OPTIMIZATION
-                </span>
-                <span className="text-xs font-bold text-emerald-700 font-mono">
-                  +₹42,000 / mo
-                </span>
+        {/* Section Body: 3 Actionable Strategies Cards */}
+        <div className="p-5 sm:p-6 bg-white">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4.5">
+            
+            {/* Strategy 1: Price Optimization */}
+            <div className="p-4 sm:p-5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] hover:shadow-xs transition-all space-y-3.5 flex flex-col justify-between group">
+              <div className="space-y-2.5">
+                {/* Card Top Row */}
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#e4e4e7]">
+                  <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 uppercase tracking-wider">
+                    PRICE OPTIMIZATION
+                  </span>
+                  <span className="text-xs font-bold text-emerald-700 font-mono bg-emerald-50/80 px-2 py-0.5 rounded border border-emerald-200">
+                    +₹42,000 / mo
+                  </span>
+                </div>
+
+                {/* Card Headline */}
+                <h3 className="text-xs font-bold text-[#09090b] leading-snug group-hover:text-[#18181b] transition-colors">
+                  Lift Classic White Oxford Cotton Shirt Price to ₹2,099
+                </h3>
+
+                {/* Analytical Micro-Metric Strip */}
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-[#52525b]">
+                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">97.4% Elasticity</span>
+                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">Zero Stockout Risk</span>
+                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7] text-emerald-700 font-semibold">+₹200/unit</span>
+                </div>
+
+                {/* Rationale Description */}
+                <p className="text-[11px] text-[#52525b] leading-relaxed">
+                  Demand elasticity analysis shows 97.4% conversion retention at ₹2,099 with zero stockouts. Delivers an additional +₹200 gross margin per unit across WhatsApp Direct and Amazon.
+                </p>
               </div>
-              <h3 className="text-xs font-bold text-[#09090b] leading-snug">
-                Lift Classic White Oxford Cotton Shirt Price to ₹2,099
-              </h3>
-              <p className="text-[11px] text-[#52525b] leading-relaxed">
-                Demand elasticity analysis shows 97.4% conversion retention at ₹2,099 with zero stockouts. Delivers an additional +₹200 gross margin per unit across WhatsApp Direct and Amazon.
-              </p>
+
+              {/* Action Button */}
+              <button
+                type="button"
+                onClick={() => heroProduct && handleApplyPriceRecommendation(heroProduct.id, 209900)}
+                className="w-full py-2.5 px-3 bg-[#18181b] hover:bg-[#27272a] text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer group-hover:shadow-xs"
+              >
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Apply Price Update (₹2,099)</span>
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => heroProduct && handleApplyPriceRecommendation(heroProduct.id, 209900)}
-              className="w-full py-2 px-3 bg-[#18181b] hover:bg-[#27272a] text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>Apply Price Update (₹2,099)</span>
-            </button>
-          </div>
+            {/* Strategy 2: Direct Channel Surge */}
+            <div className="p-4 sm:p-5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] hover:shadow-xs transition-all space-y-3.5 flex flex-col justify-between group">
+              <div className="space-y-2.5">
+                {/* Card Top Row */}
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#e4e4e7]">
+                  <span className="text-[10px] font-mono font-bold text-[#52525b] bg-white px-2 py-0.5 rounded border border-[#e4e4e7] uppercase tracking-wider">
+                    DIRECT CHANNEL SURGE
+                  </span>
+                  <span className="text-xs font-bold text-[#09090b] font-mono bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">
+                    18 Sales Ready
+                  </span>
+                </div>
 
-          {/* Strategy 2: Direct Channel Surge */}
-          <div className="p-4.5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] transition-all space-y-3 flex flex-col justify-between shadow-2xs">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold text-[#52525b] bg-[#f4f4f5] px-2 py-0.5 rounded border border-[#e4e4e7] uppercase tracking-wider">
-                  DIRECT CHANNEL SURGE
-                </span>
-                <span className="text-xs font-bold text-[#09090b] font-mono">
-                  18 Sales Ready
-                </span>
+                {/* Card Headline */}
+                <h3 className="text-xs font-bold text-[#09090b] leading-snug group-hover:text-[#18181b] transition-colors">
+                  Close 18 Pending WhatsApp Chats with 5% Festive Style Incentive
+                </h3>
+
+                {/* Analytical Micro-Metric Strip */}
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-[#52525b]">
+                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">64.2% Net Margin</span>
+                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">Zero 15-22% Comm.</span>
+                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7] text-emerald-700 font-semibold">UPI Instant</span>
+                </div>
+
+                {/* Rationale Description */}
+                <p className="text-[11px] text-[#52525b] leading-relaxed">
+                  High buyer purchase intent in WhatsApp chat queue for Oxford Shirts & Chinos. Direct UPI routing avoids 15-22% marketplace commissions, locking in 64.2% net margin.
+                </p>
               </div>
-              <h3 className="text-xs font-bold text-[#09090b] leading-snug">
-                Close 18 Pending WhatsApp Chats with 5% Festive Style Incentive
-              </h3>
-              <p className="text-[11px] text-[#52525b] leading-relaxed">
-                High buyer purchase intent in WhatsApp chat queue for Oxford Shirts & Chinos. Direct UPI routing avoids 15-22% marketplace commissions, locking in 64.2% net margin.
-              </p>
+
+              {/* Action Button */}
+              <Link
+                href="/whatsapp"
+                className="w-full py-2.5 px-3 bg-[#18181b] hover:bg-[#27272a] text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs text-center group-hover:shadow-xs"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Open Sales Agent & Dispatch Deals</span>
+              </Link>
             </div>
 
-            <Link
-              href="/whatsapp"
-              className="w-full py-2 px-3 bg-[#18181b] hover:bg-[#27272a] text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs text-center"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>Open Sales Agent & Dispatch Deals</span>
-            </Link>
-          </div>
+            {/* Strategy 3: Executive Duo Pairing */}
+            <div className="p-4 sm:p-5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] hover:shadow-xs transition-all space-y-3.5 flex flex-col justify-between group">
+              <div className="space-y-2.5">
+                {/* Card Top Row */}
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#e4e4e7]">
+                  <span className="text-[10px] font-mono font-bold text-[#52525b] bg-white px-2 py-0.5 rounded border border-[#e4e4e7] uppercase tracking-wider">
+                    WORKING CAPITAL PAIRING
+                  </span>
+                  <span className="text-xs font-bold text-[#09090b] font-mono bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">
+                    +₹38,000 Volume
+                  </span>
+                </div>
 
-          {/* Strategy 3: Executive Duo Pairing */}
-          <div className="p-4.5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] transition-all space-y-3 flex flex-col justify-between shadow-2xs">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold text-[#52525b] bg-[#f4f4f5] px-2 py-0.5 rounded border border-[#e4e4e7] uppercase tracking-wider">
-                  WORKING CAPITAL PAIRING
-                </span>
-                <span className="text-xs font-bold text-[#09090b] font-mono">
-                  +₹38,000 Volume
-                </span>
+                {/* Card Headline */}
+                <h3 className="text-xs font-bold text-[#09090b] leading-snug group-hover:text-[#18181b] transition-colors">
+                  Pair Olive Linen Shirt + Khaki Chinos as "Executive Summer Duo"
+                </h3>
+
+                {/* Analytical Micro-Metric Strip */}
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-[#52525b]">
+                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">2.4x Cash Speed</span>
+                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">61.5% Blended Margin</span>
+                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7] text-emerald-700 font-semibold">Bundle ₹4,199</span>
+                </div>
+
+                {/* Rationale Description */}
+                <p className="text-[11px] text-[#52525b] leading-relaxed">
+                  Bundle the Linen Casual Shirt (₹2,499) with Khaki Chinos (₹2,299) at ₹4,199. Accelerates cash conversion by 2.4x while maintaining a healthy 61.5% blended gross margin.
+                </p>
               </div>
-              <h3 className="text-xs font-bold text-[#09090b] leading-snug">
-                Pair Olive Linen Shirt + Khaki Chinos as "Executive Summer Duo"
-              </h3>
-              <p className="text-[11px] text-[#52525b] leading-relaxed">
-                Bundle the Linen Casual Shirt (₹2,499) with Khaki Chinos (₹2,299) at ₹4,199. Accelerates cash conversion by 2.4x while maintaining a healthy 61.5% blended gross margin.
-              </p>
+
+              {/* Action Button */}
+              <Link
+                href="/campaigns"
+                className="w-full py-2.5 px-3 border border-[#d4d4d8] bg-white hover:bg-[#f4f4f5] text-[#18181b] rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs text-center group-hover:border-[#18181b]"
+              >
+                <Package className="w-3.5 h-3.5 text-[#52525b]" />
+                <span>Create Executive Bundle Deal</span>
+              </Link>
             </div>
 
-            <Link
-              href="/campaigns"
-              className="w-full py-2 px-3 border border-[#d4d4d8] bg-white hover:bg-[#f4f4f5] text-[#18181b] rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs text-center"
-            >
-              <Package className="w-3.5 h-3.5 text-[#52525b]" />
-              <span>Create Executive Bundle Deal</span>
-            </Link>
           </div>
         </div>
       </div>

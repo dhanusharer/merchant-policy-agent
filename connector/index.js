@@ -13,10 +13,19 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
+// Process-level error protection to prevent crashes from unhandled socket rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.warn('⚠️ [UNHANDLED REJECTION]:', (reason && reason.message) || reason);
+});
+process.on('uncaughtException', (err) => {
+    console.error('⚠️ [UNCAUGHT EXCEPTION]:', (err && err.message) || err);
+});
+
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000/api/v1/whatsapp/connector-inbound';
 const TARGET_MERCHANT_PHONE = (process.env.TARGET_MERCHANT_PHONE || '+919113960498').replace(/[^\d+]/g, '');
 const TARGET_DIGITS = TARGET_MERCHANT_PHONE.replace(/[^\d]/g, '').slice(-10); // '9113960498'
 const AUTHORIZED_LIDS = ['125413632262289', '242944858702010'];
+const authorizedLidsSet = new Set(AUTHORIZED_LIDS);
 
 // Detect Chrome path on Windows if available
 let chromePath = process.env.CHROME_PATH;
@@ -52,6 +61,10 @@ const puppeteerOptions = {
         '--no-zygote',
         '--disable-gpu',
         '--disable-blink-features=AutomationControlled',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-features=CalculateNativeWinOcclusion',
         '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
     ]
 };
@@ -65,6 +78,7 @@ let client = null;
 let isAuthenticated = false;
 let hasRequestedPairingCode = false;
 let storedPairingCodeHtml = '';
+let heartbeatTimer = null;
 
 // Deduplication cache (last 500 message IDs)
 const processedMessageIds = new Set();
@@ -81,129 +95,12 @@ function isDuplicate(msgId) {
 // Track bot's outbound message IDs to prevent infinite loops
 const botSentMessageIds = new Set();
 
-function initClient() {
-    hasRequestedPairingCode = false;
-    
-    client = new Client({
-        authStrategy: new LocalAuth({
-            dataPath: './.wwebjs_auth'
-        }),
-        puppeteer: puppeteerOptions,
-        webVersionCache: {
-            type: 'none'
-        }
-    });
-
-    client.on('qr', async (qr) => {
-        console.log('\n📱 SCAN THE QR CODE BELOW WITH WHATSAPP ON YOUR AGENT PHONE:');
-        console.log('(Open WhatsApp > Linked Devices > Link a Device)\n');
-        qrcode.generate(qr, { small: true });
-
-        // Support phone number pairing code (Link with phone number instead)
-        const agentPhone = process.env.AGENT_PHONE;
-        if (agentPhone && !hasRequestedPairingCode) {
-            hasRequestedPairingCode = true;
-            try {
-                const cleanPhone = agentPhone.replace(/[^\d]/g, '');
-                console.log(`\n⏳ Requesting 8-digit pairing code from WhatsApp for ${cleanPhone}...`);
-                const pCode = await client.requestPairingCode(cleanPhone);
-                console.log('\n' + '*'.repeat(55));
-                console.log(`🔑 WHATSAPP PAIRING CODE FOR ${cleanPhone}: ${pCode}`);
-                console.log('⚡ ENTER THIS ON PHONE WITHIN 20 SECONDS!');
-                console.log('(On phone: Linked Devices > Link a Device > Link with phone number instead)');
-                console.log('*'.repeat(55) + '\n');
-                storedPairingCodeHtml = `<div style="margin:16px 0;padding:16px;background:#0284c7;border-radius:10px;font-size:26px;font-weight:bold;letter-spacing:4px;color:#ffffff;border:2px solid #38bdf8;">PAIRING CODE: ${pCode}</div><p style="color:#f59e0b;font-weight:bold;font-size:16px;">⚡ Enter on phone: Linked Devices &gt; Link with phone number instead</p>`;
-            } catch (pairErr) {
-                console.warn('⚠️ Pairing code request note:', pairErr.message);
-            }
-        }
-
-        try {
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&margin=20&data=${encodeURIComponent(qr)}`;
-            const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>WhatsApp Agent QR Code</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="15">
-  <style>
-    body { display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#0b0f19;color:#f1f5f9;text-align:center; }
-    .card { background:#1e293b;padding:28px;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,0.6);border:1px solid #334155;max-width:440px;width:90%; }
-    .qr-box { background:#ffffff;padding:16px;border-radius:12px;display:inline-block;margin-top:16px; }
-    h2 { margin:0 0 8px 0;font-size:22px;color:#38bdf8; }
-    p { margin:4px 0;color:#94a3b8;font-size:14px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>📱 Link WhatsApp Agent</h2>
-    <p>Open WhatsApp on your Agent Phone (<b>${process.env.AGENT_PHONE || 'New Agent Phone'}</b>)</p>
-    <p>Go to <b>Linked Devices</b> &gt; <b>Link a Device</b></p>
-    ${storedPairingCodeHtml}
-    <p style="margin-top:12px;font-weight:600;color:#e2e8f0;">— OR SCAN QR CODE DIRECTLY —</p>
-    <div class="qr-box">
-      <img src="${qrUrl}" alt="WhatsApp Web QR Code" width="350" height="350" />
-    </div>
-    <p style="margin-top:16px;font-size:12px;color:#64748b;">Auto-refreshes every 15s • Session will persist automatically</p>
-  </div>
-</body>
-</html>`;
-            fs.writeFileSync('./qr.html', html);
-            try { fs.writeFileSync('../qr.html', html); } catch(e) {}
-            console.log('🌐 Web QR Code viewer written to ./qr.html and ../qr.html');
-        } catch (e) {
-            // ignore
-        }
-
-        console.log('\n⏳ Waiting for QR code scan or pairing code...');
-    });
-
-    client.on('ready', () => {
-        isAuthenticated = true;
-        console.log('\n' + '='.repeat(65));
-        console.log('✅ WhatsApp Web Client is ONLINE and READY!');
-        console.log(`💬 Send messages from ${TARGET_MERCHANT_PHONE} to this WhatsApp account.`);
-        console.log('='.repeat(65) + '\n');
-    });
-
-    client.on('authenticated', () => {
-        isAuthenticated = true;
-        console.log('🔐 Authentication successful! Session persisted in ./.wwebjs_auth');
-    });
-
-    client.on('auth_failure', (msg) => {
-        console.error('❌ Authentication failed:', msg);
-    });
-
-    client.on('disconnected', async (reason) => {
-        console.warn('⚠️ Client was disconnected:', reason);
-        try {
-            await client.destroy();
-        } catch (e) {}
-        
-        if (!isAuthenticated) {
-            console.log('🔄 Session timed out before pairing. Regenerating fresh code in 2s...');
-            setTimeout(initClient, 2000);
-        } else {
-            console.log('🔄 Reconnecting in 3 seconds...');
-            setTimeout(initClient, 3000);
-        }
-    });
-
 // ---------------------------------------------------------------------------
-// Inbound Message Handler
+// Inbound Message Handler Function
 // ---------------------------------------------------------------------------
-
-// Clean digits of authorized merchant phone (+919113960498 -> 919113960498)
-const TARGET_DIGITS = TARGET_MERCHANT_PHONE.replace(/[^\d]/g, '');
-
-// Track bot's outbound message IDs to prevent infinite loops in "Message yourself"
-const botSentMessageIds = new Set();
-
-client.on('message_create', async (msg) => {
+async function handleIncomingMessage(msg) {
     try {
-        const msgId = msg.id.id || msg.id._serialized || `msg_${Date.now()}`;
+        const msgId = (msg && msg.id && (msg.id.id || msg.id._serialized)) || `msg_${Date.now()}`;
         let rawBody = (msg.body || '').trim();
         if ((!rawBody || rawBody.length === 0) && msg.hasMedia && (msg.type === 'audio' || msg.type === 'ptt')) {
             rawBody = 'Voice note received from merchant';
@@ -216,12 +113,7 @@ client.on('message_create', async (msg) => {
 
         // 1b. Self-Echo Loop Prevention: If fromMe, NEVER process bot reports or formatted messages!
         if (msg.fromMe) {
-            if (rawBody.length > 160) {
-                return;
-            }
-            if (/^[📊📦🏷️🎯📝👋⚠️✅❌ℹ️💡]/.test(rawBody)) {
-                return;
-            }
+            return;
         }
 
         // 2. Ignore WhatsApp Status / Stories, Broadcasts, Group Chats, and Twilio/automated auto-replies
@@ -233,26 +125,33 @@ client.on('message_create', async (msg) => {
             return;
         }
 
+        console.log(`📨 [RAW EVENT] from=${msg.from} | type=${msg.type} | text="${rawBody.substring(0, 30)}"`);
+
         // 3. Extract sender & recipient pure digits (strip :device_id and @domain)
         const senderDigits = (msg.from || '').split('@')[0].split(':')[0].replace(/[^\d]/g, '');
-        const recipientDigits = (msg.to || '').split('@')[0].split(':')[0].replace(/[^\d]/g, '');
-        const myWidDigits = client.info && client.info.wid ? (client.info.wid.user || '').replace(/[^\d]/g, '') : '';
         const isLid = (msg.from || '').includes('@lid') || (msg.to || '').includes('@lid');
 
-        // Resolve contact phone number if LID is used
-        let contactDigits = '';
-        try {
-            const contact = await msg.getContact();
-            if (contact && contact.number) {
-                contactDigits = contact.number.replace(/[^\d]/g, '');
-            }
-        } catch (cErr) {
-            // ignore
-        }
+        const matchesDigits = senderDigits.endsWith(TARGET_DIGITS);
+        const matchesLid = authorizedLidsSet.has(senderDigits) || AUTHORIZED_LIDS.some(lid => (msg.from || '').includes(lid));
 
-        // If msg.fromMe is true, it is outgoing activity initiated by the friend on his phone. Ignore completely!
-        if (msg.fromMe) {
-            return;
+        // Resolve contact phone number if LID is used with safe timeout
+        let contactDigits = '';
+        if (!matchesDigits && !matchesLid && isLid) {
+            try {
+                const contact = await Promise.race([
+                    msg.getContact(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500))
+                ]);
+                if (contact && contact.number) {
+                    contactDigits = contact.number.replace(/[^\d]/g, '');
+                    if (contactDigits.endsWith(TARGET_DIGITS)) {
+                        authorizedLidsSet.add(senderDigits);
+                        console.log(`🔑 [LID LEARNED] Associated LID ${senderDigits} with merchant ${TARGET_MERCHANT_PHONE}`);
+                    }
+                }
+            } catch (cErr) {
+                // ignore timeout
+            }
         }
 
         // STRICT SECURITY WHITELIST:
@@ -260,9 +159,9 @@ client.on('message_create', async (msg) => {
         // If ANY other person, friend, family member, group, or stranger texts the friend's phone,
         // it must be completely IGNORED and NEVER replied to!
         const isAuthorizedSender = 
-            senderDigits.endsWith(TARGET_DIGITS) || 
-            contactDigits.endsWith(TARGET_DIGITS) || 
-            AUTHORIZED_LIDS.some(lid => (msg.from || '').includes(lid));
+            matchesDigits || 
+            matchesLid || 
+            contactDigits.endsWith(TARGET_DIGITS);
 
         if (!isAuthorizedSender) {
             console.log(`🔒 [STRICT PRIVACY IGNORE] Blocked message from non-authorized contact: ${senderDigits || msg.from} | Name: "${contactDigits || 'Friend Contact'}" | Body: "${rawBody.substring(0, 30)}". ZERO reply sent.`);
@@ -271,7 +170,6 @@ client.on('message_create', async (msg) => {
 
         // 4. Deduplication Check
         if (isDuplicate(msgId)) {
-            console.log(`[Deduplicate] Ignoring already processed message ID: ${msgId}`);
             return;
         }
 
@@ -291,7 +189,7 @@ client.on('message_create', async (msg) => {
                 message_id: msgId
             }, {
                 headers: { 'Content-Type': 'application/json' },
-                timeout: 15000
+                timeout: 20000
             });
         } catch (networkErr) {
             console.error(`❌ [BACKEND ERROR] Failed to reach ${BACKEND_URL}:`, networkErr.message);
@@ -317,8 +215,6 @@ client.on('message_create', async (msg) => {
         }
 
         // Target recipient chat ID for media:
-        // In WhatsApp multi-device, @lid chats can fail media upload memoization in the web client.
-        // We use the merchant's canonical @c.us JID (919113960498@c.us) to ensure proper store lookup.
         const merchantCusJid = `${TARGET_DIGITS}@c.us`;
         const mediaChatId = msg.from.includes('@lid') ? merchantCusJid : msg.from;
 
@@ -379,11 +275,138 @@ client.on('message_create', async (msg) => {
     } catch (err) {
         console.error('❌ Error handling incoming message:', err);
     }
-});
+}
 
-// ---------------------------------------------------------------------------
-// Process Initialization
-// ---------------------------------------------------------------------------
+function initClient() {
+    if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+    }
+    hasRequestedPairingCode = false;
+    
+    client = new Client({
+        authStrategy: new LocalAuth({
+            dataPath: './.wwebjs_auth'
+        }),
+        puppeteer: puppeteerOptions,
+        webVersionCache: {
+            type: 'none'
+        }
+    });
+
+    client.on('qr', async (qr) => {
+        console.log('\n📱 SCAN THE QR CODE BELOW WITH WHATSAPP ON YOUR AGENT PHONE:');
+        console.log('(Open WhatsApp > Linked Devices > Link a Device)\n');
+        qrcode.generate(qr, { small: true });
+
+        // Support phone number pairing code
+        const agentPhone = process.env.AGENT_PHONE;
+        if (agentPhone && !hasRequestedPairingCode) {
+            hasRequestedPairingCode = true;
+            try {
+                const cleanPhone = agentPhone.replace(/[^\d]/g, '');
+                console.log(`\n⏳ Requesting 8-digit pairing code from WhatsApp for ${cleanPhone}...`);
+                const pCode = await client.requestPairingCode(cleanPhone);
+                console.log('\n' + '*'.repeat(55));
+                console.log(`🔑 WHATSAPP PAIRING CODE FOR ${cleanPhone}: ${pCode}`);
+                console.log('⚡ ENTER THIS ON PHONE WITHIN 20 SECONDS!');
+                console.log('(On phone: Linked Devices > Link a Device > Link with phone number instead)');
+                console.log('*'.repeat(55) + '\n');
+                storedPairingCodeHtml = `<div style="margin:16px 0;padding:16px;background:#0284c7;border-radius:10px;font-size:26px;font-weight:bold;letter-spacing:4px;color:#ffffff;border:2px solid #38bdf8;">PAIRING CODE: ${pCode}</div><p style="color:#f59e0b;font-weight:bold;font-size:16px;">⚡ Enter on phone: Linked Devices &gt; Link with phone number instead</p>`;
+            } catch (pairErr) {
+                console.warn('⚠️ Pairing code request note:', pairErr.message);
+            }
+        }
+
+        try {
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&margin=20&data=${encodeURIComponent(qr)}`;
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WhatsApp Agent QR Code</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="15">
+  <style>
+    body { display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#0b0f19;color:#f1f5f9;text-align:center; }
+    .card { background:#1e293b;padding:28px;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,0.6);border:1px solid #334155;max-width:440px;width:90%; }
+    .qr-box { background:#ffffff;padding:16px;border-radius:12px;display:inline-block;margin-top:16px; }
+    h2 { margin:0 0 8px 0;font-size:22px;color:#38bdf8; }
+    p { margin:4px 0;color:#94a3b8;font-size:14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>📱 Link WhatsApp Agent</h2>
+    <p>Open WhatsApp on your Agent Phone (<b>${process.env.AGENT_PHONE || 'New Agent Phone'}</b>)</p>
+    <p>Go to <b>Linked Devices</b> &gt; <b>Link a Device</b></p>
+    ${storedPairingCodeHtml}
+    <p style="margin-top:12px;font-weight:600;color:#e2e8f0;">— OR SCAN QR CODE DIRECTLY —</p>
+    <div class="qr-box">
+      <img src="${qrUrl}" alt="WhatsApp Web QR Code" width="350" height="350" />
+    </div>
+    <p style="margin-top:16px;font-size:12px;color:#64748b;">Auto-refreshes every 15s • Session will persist automatically</p>
+  </div>
+</body>
+</html>`;
+            fs.writeFileSync('./qr.html', html);
+            try { fs.writeFileSync('../qr.html', html); } catch(e) {}
+        } catch (e) {
+            // ignore
+        }
+
+        console.log('\n⏳ Waiting for QR code scan or pairing code...');
+    });
+
+    client.on('ready', () => {
+        isAuthenticated = true;
+        console.log('\n' + '='.repeat(65));
+        console.log('✅ WhatsApp Web Client is ONLINE and READY!');
+        console.log(`💬 Send messages from ${TARGET_MERCHANT_PHONE} to this WhatsApp account.`);
+        console.log('='.repeat(65) + '\n');
+
+        // Start active keep-alive heartbeat every 25 seconds
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
+        heartbeatTimer = setInterval(async () => {
+            try {
+                if (client && isAuthenticated) {
+                    const state = await client.getState();
+                    if (state && state !== 'CONNECTED') {
+                        console.warn(`⚠️ [HEARTBEAT] Connection state changed to: ${state}`);
+                    }
+                }
+            } catch (e) {
+                // Heartbeat ping silently keeps browser awake
+            }
+        }, 25000);
+    });
+
+    client.on('authenticated', () => {
+        isAuthenticated = true;
+        console.log('🔐 Authentication successful! Session persisted in ./.wwebjs_auth');
+    });
+
+    client.on('auth_failure', (msg) => {
+        console.error('❌ Authentication failed:', msg);
+    });
+
+    client.on('disconnected', async (reason) => {
+        console.warn('⚠️ Client was disconnected:', reason);
+        if (heartbeatTimer) {
+            clearInterval(heartbeatTimer);
+            heartbeatTimer = null;
+        }
+        try {
+            await client.destroy();
+        } catch (e) {}
+        
+        console.log('🔄 Reconnecting in 3 seconds...');
+        setTimeout(initClient, 3000);
+    });
+
+    // Register BOTH 'message' and 'message_create' for 100% reception reliability
+    client.on('message', handleIncomingMessage);
+    client.on('message_create', handleIncomingMessage);
 
     console.log('🔄 Initializing WhatsApp Web Client...');
     client.initialize().catch((err) => {
@@ -398,6 +421,10 @@ initClient();
 // Graceful process shutdown
 const handleExit = async (signal) => {
     console.log(`\n🛑 Received ${signal}. Shutting down WhatsApp Web Connector...`);
+    if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+    }
     try {
         await client.destroy();
         console.log('✅ Client session terminated cleanly.');

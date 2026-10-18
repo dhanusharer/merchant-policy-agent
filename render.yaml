@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: merchant-policy-agent-api
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && pip install -e . && python scripts/seed_commerce_data.py && python scripts/update_vastram_clothing.py && python scripts/enrich_vastram_products.py && python scripts/seed_vastram_orders.py"
+    startCommand: "uvicorn apps.api.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./test.db
+      - key: RAZORPAY_KEY_ID
+        value: rzp_test_TXLFfNuyfKpBqM
+      - key: RAZORPAY_KEY_SECRET
+        value: xWXi5GDl3LeMvEuVhFOIRhL8
+      - key: RAZORPAY_WEBHOOK_SECRET
+        value: whsec_test_buildathon_2026
+      - key: WHATSAPP_TEST_MERCHANT_PHONE
+        value: "+919113960498"
+      - key: WHATSAPP_DEFAULT_MERCHANT_ID
+        value: merch_atlas_travel

@@ -33,6 +33,12 @@ class IntentType(str, Enum):
     SALES_REPORT = "SALES_REPORT"
     CATALOG_LIST = "CATALOG_LIST"
     LOW_MARGIN_QUERY = "LOW_MARGIN_QUERY"
+    MARKETPLACE_REPORT = "MARKETPLACE_REPORT"
+    ORDER_LOOKUP = "ORDER_LOOKUP"
+    PAYMENT_FAILURE_REPORT = "PAYMENT_FAILURE_REPORT"
+    BUSINESS_STRATEGY = "BUSINESS_STRATEGY"
+    ALL_INPUTS_MENU = "ALL_INPUTS_MENU"
+    MULTI_IMAGE_REQUEST = "MULTI_IMAGE_REQUEST"
     HELP = "HELP"
     UNKNOWN = "UNKNOWN"
 
@@ -41,7 +47,7 @@ class WhatsAppIntent(BaseModel):
     """Structured merchant intent parsed from a WhatsApp message."""
     intent: str = Field(
         ...,
-        description="Core intent: PRICE_UPDATE, INVENTORY_UPDATE, OFFER_CREATE, QUERY_CATALOG, QUERY_STOCK, RECOMMENDATION_REQUEST, CONFIRMATION, CANCELLATION, UNKNOWN"
+        description="Core intent: PRICE_UPDATE, INVENTORY_UPDATE, OFFER_CREATE, QUERY_CATALOG, QUERY_STOCK, RECOMMENDATION_REQUEST, CONFIRMATION, CANCELLATION, MARKETPLACE_REPORT, ORDER_LOOKUP, PAYMENT_FAILURE_REPORT, BUSINESS_STRATEGY, ALL_INPUTS_MENU, MULTI_IMAGE_REQUEST, UNKNOWN"
     )
     product_query: Optional[str] = Field(default=None, description="Extracted product identifier, name, or keywords")
     operation_subtype: Optional[str] = Field(
@@ -54,6 +60,8 @@ class WhatsAppIntent(BaseModel):
     inventory_units: Optional[int] = Field(default=None, description="Number of inventory units to add or set")
     campaign_name: Optional[str] = Field(default=None, description="Offer campaign or festival reason")
     confirmation_code: Optional[str] = Field(default=None, description="Extracted confirmation PIN or code if present")
+    order_id_query: Optional[str] = Field(default=None, description="Extracted order ID or receipt number")
+    marketplace_channel: Optional[str] = Field(default=None, description="Target channel: AMAZON, FLIPKART, MEESHO, ONDC, ALL")
     language: str = Field(default="en", description="Detected language code: en, kn, hi")
     confidence: float = Field(default=0.95, description="Confidence score between 0.0 and 1.0")
     needs_clarification: bool = Field(default=False, description="True if mandatory details are missing or ambiguous")
@@ -88,6 +96,18 @@ class WhatsAppIntent(BaseModel):
             return IntentType.CATALOG_LIST
         if self.intent == "LOW_MARGIN_QUERY":
             return IntentType.LOW_MARGIN_QUERY
+        if self.intent == "MARKETPLACE_REPORT":
+            return IntentType.MARKETPLACE_REPORT
+        if self.intent == "ORDER_LOOKUP":
+            return IntentType.ORDER_LOOKUP
+        if self.intent == "PAYMENT_FAILURE_REPORT":
+            return IntentType.PAYMENT_FAILURE_REPORT
+        if self.intent == "BUSINESS_STRATEGY":
+            return IntentType.BUSINESS_STRATEGY
+        if self.intent == "ALL_INPUTS_MENU":
+            return IntentType.ALL_INPUTS_MENU
+        if self.intent == "MULTI_IMAGE_REQUEST":
+            return IntentType.MULTI_IMAGE_REQUEST
         return IntentType.UNKNOWN
 
     @property
@@ -147,6 +167,32 @@ def parse_rupees_to_paise(val_str: str) -> Optional[int]:
         return None
 
 
+def normalize_fuzzy_intent(raw_text: str) -> str:
+    """Normalize common typos, phonetic spelling, and merchant shorthand for robust intent extraction."""
+    t = raw_text.lower()
+    replacements = [
+        (r"\b(seles|slas|salee|seils)\b", "sales"),
+        (r"\b(repot|reprt|repurt|rprt)\b", "report"),
+        (r"\b(flipkrt|flpkart|flpkrt|filpkart|flipkat|flipkartt)\b", "flipkart"),
+        (r"\b(amazn|amzon|amazone|amzone|amzn|amz)\b", "amazon"),
+        (r"\b(mesho|misho|meeshow)\b", "meesho"),
+        (r"\b(e\s*comeses|e\s*com|ecom|ecomm|ecomerce)\b", "ecommerce"),
+        (r"\b(statergy|stratgy|stratergy|bussiness|buiness|bizness|bisness)\b", "strategy"),
+        (r"\b(failur|falyur|failer|falure)\b", "failure"),
+        (r"\b(pament|paymnt|paymet)\b", "payment"),
+        (r"\b(oder|odr|ordr|ordur)\b", "order"),
+        (r"\b(stok|stck|invetory|inventry)\b", "stock"),
+        (r"\b(marjin|margen)\b", "margin"),
+        (r"\b(prfit|proft)\b", "profit"),
+        (r"\b(vois|vice|voic|audiyo)\b", "voice"),
+        (r"\b(fotot|foto|poto|graf|grapf|graff|diagram)\b", "graph"),
+        (r"\b(inpt|inpts|feautre|feautres)\b", "inputs"),
+    ]
+    for pattern, repl in replacements:
+        t = re.sub(pattern, repl, t)
+    return t
+
+
 class WhatsAppIntentParser:
     """NLU engine for WhatsApp merchant conversations."""
 
@@ -163,6 +209,7 @@ class WhatsAppIntentParser:
         raw = text.strip()
         lang = detect_language(raw)
         norm = raw.lower()
+        fuzzy = normalize_fuzzy_intent(norm)
 
         # 1. Confirmation / Cancellation commands
         confirm_patterns = [
@@ -436,12 +483,118 @@ class WhatsAppIntentParser:
                 confidence=0.94
             )
 
-        # 15. Queries: Sales & Revenue Reports
-        # e.g. "Download the previous week sales report", "Show today's sales", "sales report", "weekly sales"
-        if any(p in norm for p in [
+        # 15. Specific Order Lookup by Order ID (e.g. ord_vast_9841, order 9841, #9841, oder 9840)
+        order_match = re.search(r"\b(ord_[a-z0-9_]+)\b", norm)
+        if not order_match:
+            order_match = re.search(r"(?:order|oder|odr|ordr)\s*(?:id\s*)?(?:#\s*)?([a-z0-9_]+)", fuzzy)
+        if not order_match:
+            order_match = re.search(r"#(\d{3,5})\b", norm)
+        if not order_match and any(w in fuzzy for w in ["order", "track order"]):
+            num_match = re.search(r"\b(98\d{2}|97\d{2}|99\d{2}|\d{1,4})\b", norm)
+            if num_match:
+                order_match = num_match
+
+        if order_match and "report" not in fuzzy and "sales" not in fuzzy:
+            extracted_oid = order_match.group(1).strip()
+            return WhatsAppIntent(
+                intent="ORDER_LOOKUP",
+                order_id_query=extracted_oid,
+                language=lang,
+                confidence=0.98
+            )
+
+        # 16. Payment Failure & RTO Analysis Report
+        if any(w in fuzzy for w in [
+            "payment failure", "failure report", "failed payments", "failed payment",
+            "failed orders", "rto report", "rto", "dropoff", "drop off", "rejected payment", "rejection"
+        ]):
+            return WhatsAppIntent(
+                intent="PAYMENT_FAILURE_REPORT",
+                language=lang,
+                confidence=0.98
+            )
+
+        # 17. Multi-Image / Photo Stack / Graph Images
+        if any(w in fuzzy for w in [
+            "stack photo", "12 photo", "multiaple image", "multiple images", "multiple image",
+            "stack of photo", "photo stack", "send images", "all photos", "graph images", "all graphs",
+            "all charts", "send graphs", "send photos", "stack of images"
+        ]):
+            return WhatsAppIntent(
+                intent="MULTI_IMAGE_REQUEST",
+                language=lang,
+                confidence=0.98
+            )
+
+        # 18. All Inputs / Features Cheatsheet / Menu
+        if any(w in fuzzy for w in [
+            "all inputs", "inputs", "list inputs", "give all inputs", "all features",
+            "features", "n number of features", "commands", "what can you do", "cheat sheet",
+            "cheatsheet", "master menu", "full menu"
+        ]):
+            return WhatsAppIntent(
+                intent="ALL_INPUTS_MENU",
+                language=lang,
+                confidence=0.99
+            )
+
+        # 19. Marketplace Reports: Amazon, Flipkart, Meesho, ONDC, Multi-channel
+        if "amazon" in fuzzy or any(w in norm for w in ["amzn", "amz", "amazn", "amzone", "amazone"]):
+            return WhatsAppIntent(
+                intent="MARKETPLACE_REPORT",
+                marketplace_channel="AMAZON",
+                language=lang,
+                confidence=0.98
+            )
+
+        if "flipkart" in fuzzy or any(w in norm for w in ["flpkart", "flipkrt", "filpkart", "flipkat"]):
+            return WhatsAppIntent(
+                intent="MARKETPLACE_REPORT",
+                marketplace_channel="FLIPKART",
+                language=lang,
+                confidence=0.98
+            )
+
+        if "meesho" in fuzzy or any(w in norm for w in ["mesho", "misho"]):
+            return WhatsAppIntent(
+                intent="MARKETPLACE_REPORT",
+                marketplace_channel="MEESHO",
+                language=lang,
+                confidence=0.98
+            )
+
+        if "ondc" in fuzzy:
+            return WhatsAppIntent(
+                intent="MARKETPLACE_REPORT",
+                marketplace_channel="ONDC",
+                language=lang,
+                confidence=0.98
+            )
+
+        if any(w in fuzzy for w in ["ecommerce", "e com", "marketplace", "channels", "channel comparison"]):
+            return WhatsAppIntent(
+                intent="MARKETPLACE_REPORT",
+                marketplace_channel="ALL",
+                language=lang,
+                confidence=0.97
+            )
+
+        # 20. Business Strategy Report
+        if any(w in fuzzy for w in [
+            "strategy", "business strategy", "buiness statergy", "statergy",
+            "growth strategy", "scale", "scaling", "profit strategy", "arbitrage", "expansion"
+        ]):
+            return WhatsAppIntent(
+                intent="BUSINESS_STRATEGY",
+                language=lang,
+                confidence=0.98
+            )
+
+        # 21. Queries: Sales & Revenue Reports (with typo tolerance: seles, repot, slas, etc.)
+        if any(w in fuzzy for w in [
             "sales report", "sales", "report", "revenue", "weekly sales", "previous week",
             "last week", "orders report", "download", "today's sales", "todays sales", "show sales"
-        ]):
+        ]) or any(w in norm for w in ["seles", "sohw repot", "repot", "slas", "seils"]):
             return WhatsAppIntent(
                 intent="SALES_REPORT",
                 language="en",
@@ -455,10 +608,10 @@ class WhatsAppIntentParser:
             confidence=0.50,
             needs_clarification=True,
             clarification_question=(
-                "ನಮಸ್ಕಾರ! ನೀವು ಪ್ರಾಡಕ್ಟ್ ಬೆಲೆ (Price), ಸ್ಟಾಕ್ (Inventory), ಅಥವಾ ಆಫರ್ (Offers) ಬದಲಾಯಿಸಲು ತಿಳಿಸಬಹುದು."
+                "ನಮಸ್ಕಾರ! ನೀವು 'sales report', 'flipkart report', 'amazon report', 'order 9841', 'payment failure', ಅಥವಾ 'all inputs' ಎಂದು ಟೈಪ್ ಮಾಡಬಹುದು."
                 if lang == "kn" else
-                "नमस्ते! आप उत्पाद का मूल्य (Price), स्टॉक (Stock), या ऑफर्स (Offers) अपडेट करने के लिए निर्देश दे सकते हैं।"
+                "नमस्ते! आप 'sales report', 'flipkart report', 'amazon report', 'order 9841', 'payment failure', या 'all inputs' टाइप कर सकते हैं।"
                 if lang == "hi" else
-                "Hello! You can update product prices, add inventory, check stock, or create offers. For example: 'Change black backpack price to ₹1,499' or 'Which products have low stock?'"
+                "Hello! You can ask for 'sales report', 'flipkart report', 'amazon report', 'order 9841', 'payment failure report', 'business strategy', or type 'all inputs' to see all features."
             )
         )

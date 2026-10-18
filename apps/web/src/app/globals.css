@@ -1,77 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #146ef5;
-  --color-accent-hover: #1366e2;
-  --color-ink: #080808;
-  --color-text-secondary: #5a5a5a;
-  --color-border: #d8d8d8;
-  --color-muted: #bdbdbd;
-  --color-tint: #f0f0f0;
-  --color-surface: #ffffff;
-  --color-inverted: #080808;
-
-  /* Steep Tokens */
-  --color-ink-black: #17191c;
-  --color-paper-white: #ffffff;
-  --color-mist-gray: #f2f2f3;
-  --color-fog-white: #fafafb;
-  --color-slate-gray: #777b86;
-  --color-ash-gray: #979799;
-  --color-smoke-gray: #a3a6af;
-  --color-blush-peach: #fbe1d1;
-  --color-sienna-brown: #5d2a1a;
+  --color-accent: #087F6B;
+  --color-accent-hover: #066453;
+  --color-page: #F4F6FA;
+  --color-surface: #FFFFFF;
+  --color-header: #E8EEF5;
+  --color-nested: #F8FAFC;
+  --color-main: #0F172A;
+  --color-secondary: #526176;
+  --color-muted: #667085;
+  --color-border-default: #D5DEE9;
+  --color-border-strong: #C4CFDC;
+  --color-btn-primary: #0F172A;
+  --color-btn-hover: #1E293B;
+  --color-brand-accent: #087F6B;
+  --color-pos-bg: #E8F7F1;
+  --color-pos-text: #067647;
+  --color-warn-bg: #FFF4DB;
+  --color-warn-text: #92400E;
 }
 
 :root {
-  --color-accent: #146ef5;
-  --color-accent-hover: #1366e2;
-  --color-ink: #080808;
-  --color-text-secondary: #5a5a5a;
-  --color-border: #d8d8d8;
-  --color-muted: #bdbdbd;
-  --color-tint: #f0f0f0;
-  --color-surface: #ffffff;
-  --color-inverted: #080808;
+  --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
 
-  /* Steep Palette */
-  --color-ink-black: #17191c;
-  --color-paper-white: #ffffff;
-  --color-mist-gray: #f2f2f3;
-  --color-fog-white: #fafafb;
-  --color-slate-gray: #777b86;
-  --color-ash-gray: #979799;
-  --color-smoke-gray: #a3a6af;
-  --color-blush-peach: #fbe1d1;
-  --color-sienna-brown: #5d2a1a;
-
-  --font-serif: "Signifier", "GT Sectra", "Tiempos Headline", "Source Serif 4", Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-sans: "Söhne", Inter, Satoshi, "General Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
-
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-18: 72px;
-  --space-20: 80px;
-
-  --radius-control: 4px;
-  --radius-card: 8px;
+  --color-page-bg: #F4F6FA;
+  --color-surface-white: #FFFFFF;
+  --color-header-bg: #E8EEF5;
+  --color-nested-bg: #F8FAFC;
+  --color-text-main: #0F172A;
+  --color-text-secondary: #526176;
+  --color-text-muted: #667085;
+  --color-border-default: #D5DEE9;
+  --color-border-strong: #C4CFDC;
+  --color-btn-primary: #0F172A;
+  --color-btn-primary-hover: #1E293B;
+  --color-brand-accent: #087F6B;
+  --color-brand-accent-hover: #066453;
+  --color-status-pos-bg: #E8F7F1;
+  --color-status-pos-text: #067647;
+  --color-status-warn-bg: #FFF4DB;
+  --color-status-warn-text: #92400E;
 
   font-feature-settings: "ss01" on, "tnum" on;
 }
 
 body {
-  background-color: #ffffff;
-  color: #080808;
-  font-family: var(--font-sans);
+  background-color: #F4F6FA;
+  color: #0F172A;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.font-heading {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 /* Steep Style Components */

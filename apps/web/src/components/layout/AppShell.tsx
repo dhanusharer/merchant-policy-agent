@@ -130,9 +130,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-[#080808] flex flex-col font-sans overflow-x-hidden max-w-full">
+    <div className="min-h-screen bg-[#F4F6FA] text-[#0F172A] flex flex-col font-sans overflow-x-hidden max-w-full">
       {/* Content Viewport with bottom padding for mobile bar */}
-      <main className="flex-1 min-w-0 bg-[#fafafa] pb-24 md:pb-20">
+      <main className="flex-1 min-w-0 bg-[#F4F6FA] pb-24 md:pb-20">
         {children}
       </main>
 
@@ -140,7 +140,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* INSTAGRAM-STYLE BOTTOM NAVIGATION (4 ITEMS)                    */}
       {/* 1: Overview | 2: Products | 3: Growth Doctor | 4: More/Others  */}
       {/* ============================================================== */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#e4e4e7] px-2 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#D5DEE9] px-2 py-1.5 shadow-[0_-4px_16px_rgba(15,23,42,0.04)]">
         <div className="max-w-md mx-auto grid grid-cols-4 items-center">
           
           {/* Tab 1: Overview */}
@@ -149,11 +149,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setIsMoreOpen(false)}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
               pathname === '/'
-                ? 'text-[#080808] font-bold scale-105'
-                : 'text-[#71717a] hover:text-[#080808] font-medium'
+                ? 'text-[#0F172A] font-bold scale-105'
+                : 'text-[#526176] hover:text-[#0F172A] font-medium'
             }`}
           >
-            <div className={`p-1 rounded-full ${pathname === '/' ? 'bg-[#080808] text-white shadow-xs' : ''}`}>
+            <div className={`p-1 rounded-full ${pathname === '/' ? 'bg-[#0F172A] text-white shadow-xs' : ''}`}>
               <LayoutDashboard className="w-4 h-4" />
             </div>
             <span className="text-[10px] tracking-tight mt-0.5">Overview</span>
@@ -165,11 +165,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setIsMoreOpen(false)}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
               pathname.startsWith('/products')
-                ? 'text-[#080808] font-bold scale-105'
-                : 'text-[#71717a] hover:text-[#080808] font-medium'
+                ? 'text-[#0F172A] font-bold scale-105'
+                : 'text-[#526176] hover:text-[#0F172A] font-medium'
             }`}
           >
-            <div className={`p-1 rounded-full ${pathname.startsWith('/products') ? 'bg-[#080808] text-white shadow-xs' : ''}`}>
+            <div className={`p-1 rounded-full ${pathname.startsWith('/products') ? 'bg-[#0F172A] text-white shadow-xs' : ''}`}>
               <Package className="w-4 h-4" />
             </div>
             <span className="text-[10px] tracking-tight mt-0.5">Products</span>
@@ -181,11 +181,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setIsMoreOpen(false)}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
               pathname.startsWith('/doctor')
-                ? 'text-[#080808] font-bold scale-105'
-                : 'text-[#71717a] hover:text-[#080808] font-medium'
+                ? 'text-[#0F172A] font-bold scale-105'
+                : 'text-[#526176] hover:text-[#0F172A] font-medium'
             }`}
           >
-            <div className={`p-1 rounded-full ${pathname.startsWith('/doctor') ? 'bg-[#080808] text-white shadow-xs' : ''}`}>
+            <div className={`p-1 rounded-full ${pathname.startsWith('/doctor') ? 'bg-[#0F172A] text-white shadow-xs' : ''}`}>
               <Stethoscope className="w-4 h-4" />
             </div>
             <span className="text-[10px] tracking-tight mt-0.5">Doctor</span>
@@ -196,11 +196,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setIsMoreOpen(!isMoreOpen)}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
               isMoreOpen || isMoreActive
-                ? 'text-[#080808] font-bold scale-105'
-                : 'text-[#71717a] hover:text-[#080808] font-medium'
+                ? 'text-[#0F172A] font-bold scale-105'
+                : 'text-[#526176] hover:text-[#0F172A] font-medium'
             }`}
           >
-            <div className={`p-1 rounded-full ${isMoreOpen || isMoreActive ? 'bg-[#080808] text-white shadow-xs' : ''}`}>
+            <div className={`p-1 rounded-full ${isMoreOpen || isMoreActive ? 'bg-[#0F172A] text-white shadow-xs' : ''}`}>
               <Grid className="w-4 h-4" />
             </div>
             <span className="text-[10px] tracking-tight mt-0.5">Others</span>
@@ -222,32 +222,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
 
           {/* Sheet Container */}
-          <div className="relative bg-white rounded-t-2xl max-w-lg w-full mx-auto p-4 sm:p-5 shadow-2xl border-t border-[#e4e4e7] z-10 max-h-[85vh] overflow-y-auto animate-slide-up space-y-4">
+          <div className="relative bg-white rounded-t-2xl max-w-lg w-full mx-auto p-4 sm:p-5 shadow-2xl border-t border-[#D5DEE9] z-10 max-h-[85vh] overflow-y-auto animate-slide-up space-y-4">
             
             {/* Top Drag Handle */}
-            <div className="w-10 h-1 bg-[#d4d4d8] rounded-full mx-auto" />
+            <div className="w-10 h-1 bg-[#C4CFDC] rounded-full mx-auto" />
 
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#f4f4f5]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#D5DEE9]">
               <div className="flex items-center gap-3">
                 <img
                   src="/vyapar_mitra_logo.png"
                   alt="Vyapar Mitra"
                   className="h-8 w-auto object-contain"
                 />
-                <div className="h-5 w-[1px] bg-[#e4e4e7]" />
+                <div className="h-5 w-[1px] bg-[#D5DEE9]" />
                 <div>
-                  <h3 className="text-sm font-bold text-[#080808] tracking-tight">
+                  <h3 className="text-sm font-bold text-[#0F172A] tracking-tight">
                     Merchant Operations Suite
                   </h3>
-                  <p className="text-[11px] text-[#71717a]">
+                  <p className="text-[11px] text-[#526176]">
                     Channels, campaigns, policies, and ledger
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsMoreOpen(false)}
-                className="p-1.5 rounded-full hover:bg-[#f4f4f5] text-[#71717a] transition-colors"
+                className="p-1.5 rounded-full hover:bg-[#F8FAFC] text-[#526176] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -265,8 +265,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setIsMoreOpen(false)}
                     className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
                       active
-                        ? 'border-[#080808] bg-[#f4f4f5] shadow-xs'
-                        : 'border-[#e4e4e7] bg-white hover:border-[#a1a1aa] hover:bg-[#fafafa]'
+                        ? 'border-[#0F172A] bg-[#E8EEF5] shadow-xs'
+                        : 'border-[#D5DEE9] bg-white hover:border-[#C4CFDC] hover:bg-[#F8FAFC]'
                     }`}
                   >
                     <div className={`p-2 rounded-lg border ${item.color} shrink-0`}>
@@ -274,12 +274,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className={`text-xs font-bold truncate ${active ? 'text-[#080808]' : 'text-[#18181b]'}`}>
+                        <span className={`text-xs font-bold truncate ${active ? 'text-[#0F172A]' : 'text-[#0F172A]'}`}>
                           {item.label}
                         </span>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#a1a1aa] shrink-0" />
+                        <ChevronRight className="w-3.5 h-3.5 text-[#667085] shrink-0" />
                       </div>
-                      <p className="text-[10px] text-[#71717a] leading-snug line-clamp-2 mt-0.5">
+                      <p className="text-[10px] text-[#526176] leading-snug line-clamp-2 mt-0.5">
                         {item.description}
                       </p>
                     </div>
@@ -289,8 +289,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Reset Demo Quick Action */}
-            <div className="pt-2 border-t border-[#f4f4f5] flex items-center justify-between">
-              <span className="text-[10px] font-mono text-[#71717a]">
+            <div className="pt-2 border-t border-[#D5DEE9] flex items-center justify-between">
+              <span className="text-[10px] font-mono text-[#667085]">
                 Vyapar Mitra AI Operations Engine
               </span>
               <button
@@ -310,37 +310,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Reset Demo Modal */}
       {isResetModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#d8d8d8] rounded-[8px] max-w-md w-full p-6 space-y-4 shadow-sm">
+          <div className="bg-white border border-[#D5DEE9] rounded-[16px] max-w-md w-full p-6 space-y-4 shadow-[0_2px_6px_rgba(15,23,42,0.04)]">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-sm text-[#080808]">Reset Demo Data</h3>
-                <p className="text-xs text-[#5a5a5a] mt-1">
+                <h3 className="font-semibold text-sm text-[#0F172A]">Reset Demo Data</h3>
+                <p className="text-xs text-[#526176] mt-1">
                   This will re-initialize Growth Doctor findings, channel allocations, and sample contacts for merchant{' '}
-                  <code className="font-mono text-[#080808]">Vyapar Mitra</code> to their baseline benchmark state.
+                  <code className="font-mono text-[#0F172A]">Vyapar Mitra</code> to their baseline benchmark state.
                 </p>
               </div>
             </div>
 
             {resetSuccess && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-[4px] flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="p-3 bg-[#E8F7F1] border border-[#067647]/30 text-[#067647] text-xs rounded-[8px] flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#067647] shrink-0" />
                 <span>Demo data reset successfully. Reloading view...</span>
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#d8d8d8]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#D5DEE9]">
               <button
                 onClick={() => setIsResetModalOpen(false)}
                 disabled={isResetting}
-                className="px-3 py-1.5 text-xs font-medium border border-[#d8d8d8] rounded-[4px] text-[#5a5a5a] hover:bg-[#f0f0f0]"
+                className="px-3 py-1.5 text-xs font-medium border border-[#D5DEE9] rounded-[8px] text-[#526176] hover:bg-[#F8FAFC]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleResetDemo}
                 disabled={isResetting}
-                className="px-3 py-1.5 text-xs font-medium bg-[#080808] text-white rounded-[4px] hover:bg-[#27272a]"
+                className="px-3.5 py-1.5 text-xs font-medium bg-[#0F172A] text-white rounded-[8px] hover:bg-[#1E293B]"
               >
                 {isResetting ? 'Resetting...' : 'Confirm Reset'}
               </button>

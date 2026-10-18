@@ -5,7 +5,9 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 
-from domain.models import Merchant, Product
+import re
+from sqlalchemy import select
+from domain.models import Merchant, Product, AuditEvent
 
 
 @pytest.fixture
@@ -149,22 +151,125 @@ async def test_connector_stock_update_guardrail(client: AsyncClient, connector_m
 
 
 @pytest.mark.asyncio
-async def test_connector_price_change_policy_violation(client: AsyncClient, connector_merchant):
-    """Verify 'Change Product A price to 499' triggers policy violation and gives compliant price."""
+async def test_connector_todays_sales(client: AsyncClient, connector_merchant):
+    """Verify 'Show today's sales' returns 200 and executive sales report."""
     resp = await client.post(
         "/api/v1/whatsapp/connector-inbound",
         json={
             "sender_phone": "+919113960498",
-            "message_text": "Change Product A price to 499",
-            "message_id": "test_msg_price_01"
+            "message_text": "Show today's sales",
+            "message_id": "test_msg_sales_today_01"
         }
     )
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "success"
-    assert data["intent"] == "PRICE_UPDATE"
-    assert "Policy Guard Alert" in data["reply"]
-    assert "Compliant Alternative" in data["reply"]
+    assert data["intent"] == "SALES_REPORT"
+    assert "Executive Sales & Revenue Report" in data["reply"]
+    assert "Realized Revenue" in data["reply"]
+
+
+@pytest.mark.asyncio
+async def test_connector_stock_update_full_lifecycle(client: AsyncClient, db_session: AsyncSession, connector_merchant):
+    """Verify stock update: 1) guardrail prompt, 2) confirm execution, 3) DB update, 4) audit log."""
+    # Step 1: Request stock change
+    resp1 = await client.post(
+        "/api/v1/whatsapp/connector-inbound",
+        json={
+            "sender_phone": "+919113960498",
+            "message_text": "Update Product A stock to 25",
+            "message_id": "test_msg_stock_step1"
+        }
+    )
+    assert resp1.status_code == 200
+    d1 = resp1.json()
+    assert d1["status"] == "success"
+    assert "Confirm Inventory Adjustment" in d1["reply"]
+
+    # Extract 4-digit confirmation code
+    code_match = re.search(r"\b(\d{4})\b", d1["reply"])
+    assert code_match is not None, "Expected 4-digit confirmation code in reply"
+    conf_code = code_match.group(1)
+
+    # Step 2: Confirm via WhatsApp
+    resp2 = await client.post(
+        "/api/v1/whatsapp/connector-inbound",
+        json={
+            "sender_phone": "+919113960498",
+            "message_text": f"CONFIRM {conf_code}",
+            "message_id": "test_msg_stock_step2"
+        }
+    )
+    assert resp2.status_code == 200
+    d2 = resp2.json()
+    assert d2["status"] == "success"
+    assert "Stock Successfully Updated" in d2["reply"] or "25 units" in d2["reply"]
+
+    # Step 3: Verify DB product inventory is strictly 25
+    prod_stmt = select(Product).where(Product.id == "prod_vastram_shirt_linen")
+    prod = (await db_session.execute(prod_stmt)).scalar_one()
+    assert prod.inventory_quantity == 25
+
+    # Step 4: Verify AuditEvent was logged
+    audit_stmt = select(AuditEvent).where(
+        AuditEvent.merchant_id == connector_merchant.id,
+        AuditEvent.action == "inventory_updated_via_whatsapp"
+    )
+    audit = (await db_session.execute(audit_stmt)).scalars().first()
+    assert audit is not None
+    assert audit.actor == "WHATSAPP_OPERATOR"
+    assert audit.payload.get("new_inventory") == 25
+
+
+@pytest.mark.asyncio
+async def test_connector_price_change_full_lifecycle(client: AsyncClient, db_session: AsyncSession, connector_merchant):
+    """Verify price change: 1) policy violation warning with compliant price, 2) confirm, 3) DB price updated, 4) audit log."""
+    # Step 1: Propose low price (violates 18% margin floor)
+    resp1 = await client.post(
+        "/api/v1/whatsapp/connector-inbound",
+        json={
+            "sender_phone": "+919113960498",
+            "message_text": "Change Product A price to 499",
+            "message_id": "test_msg_price_step1"
+        }
+    )
+    assert resp1.status_code == 200
+    d1 = resp1.json()
+    assert d1["status"] == "success"
+    assert "Policy Guard Alert" in d1["reply"]
+    assert "Compliant Alternative" in d1["reply"]
+
+    code_match = re.search(r"(?:CONFIRM\s+|Confirmation Code:\s*\*?)(\d{4,6})", d1["reply"], re.IGNORECASE)
+    assert code_match is not None, "Expected confirmation code"
+    conf_code = code_match.group(1)
+
+    # Step 2: Confirm compliant price
+    resp2 = await client.post(
+        "/api/v1/whatsapp/connector-inbound",
+        json={
+            "sender_phone": "+919113960498",
+            "message_text": f"CONFIRM {conf_code}",
+            "message_id": "test_msg_price_step2"
+        }
+    )
+    assert resp2.status_code == 200
+    d2 = resp2.json()
+    assert d2["status"] == "success"
+    assert "Price Successfully Updated" in d2["reply"]
+
+    # Step 3: Verify DB price updated to compliant alternative (₹1,121.96 => 112196 paise)
+    prod_stmt = select(Product).where(Product.id == "prod_vastram_shirt_linen")
+    prod = (await db_session.execute(prod_stmt)).scalar_one()
+    assert prod.price_paise == 112196
+
+    # Step 4: Verify AuditEvent
+    audit_stmt = select(AuditEvent).where(
+        AuditEvent.merchant_id == connector_merchant.id,
+        AuditEvent.action == "price_updated_via_whatsapp"
+    )
+    audit = (await db_session.execute(audit_stmt)).scalars().first()
+    assert audit is not None
+    assert audit.actor == "WHATSAPP_OPERATOR"
 
 
 @pytest.mark.asyncio

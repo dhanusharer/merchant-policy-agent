@@ -85,29 +85,29 @@ export function ProductDetailModal({
       />
 
       {/* Modal / Sheet Container */}
-      <div className="relative bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full mx-auto shadow-2xl border border-[#e4e4e7] z-10 max-h-[92vh] flex flex-col overflow-hidden animate-slide-up">
+      <div className="relative bg-white rounded-t-2xl sm:rounded-[16px] max-w-3xl w-full mx-auto shadow-2xl border border-[#D5DEE9] z-10 max-h-[92vh] flex flex-col overflow-hidden animate-slide-up">
         
         {/* Mobile Pull Handle */}
-        <div className="w-12 h-1.5 bg-[#d4d4d8] rounded-full mx-auto mt-2.5 sm:hidden shrink-0" />
+        <div className="w-12 h-1.5 bg-[#C4CFDC] rounded-full mx-auto mt-2.5 sm:hidden shrink-0" />
 
         {/* Modal Top Header Bar */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#f4f4f5] bg-white sticky top-0 z-20">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#C4CFDC] bg-[#E8EEF5] sticky top-0 z-20">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] font-bold bg-[#080808] text-white px-2 py-0.5 rounded">
+            <span className="font-mono text-[10px] font-bold bg-[#0F172A] text-white px-2 py-0.5 rounded">
               VYAPAR MITRA APPAREL
             </span>
-            <span className="text-xs font-mono text-[#71717a] font-medium">
+            <span className="text-xs font-mono text-[#526176] font-medium">
               SKU: {product.sku}
             </span>
             {product.inventory_quantity <= 10 && (
-              <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 animate-pulse">
+              <span className="text-[10px] font-bold text-[#92400E] bg-[#FFF4DB] px-2 py-0.5 rounded border border-[#92400E]/30 animate-pulse">
                 LOW STOCK ({product.inventory_quantity})
               </span>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-[#f4f4f5] text-[#71717a] hover:text-[#080808] transition-colors"
+            className="p-1.5 rounded-full hover:bg-white text-[#526176] hover:text-[#0F172A] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -117,9 +117,9 @@ export function ProductDetailModal({
         <div className="overflow-y-auto p-5 sm:p-6 space-y-6">
           
           {/* Main Hero Card: Photo + Title + Key Economics */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 p-4 rounded-xl bg-[#fafafa] border border-[#e4e4e7]">
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 p-4 rounded-[12px] bg-[#F8FAFC] border border-[#D5DEE9]">
             {/* Product Image */}
-            <div className="sm:col-span-4 relative rounded-lg overflow-hidden bg-white border border-[#e4e4e7] aspect-square flex items-center justify-center p-2 shadow-2xs">
+            <div className="sm:col-span-4 relative rounded-lg overflow-hidden bg-white border border-[#D5DEE9] aspect-square flex items-center justify-center p-2 shadow-2xs">
               <img
                 src={imageUrl}
                 alt={product.name}
@@ -131,63 +131,63 @@ export function ProductDetailModal({
             <div className="sm:col-span-8 flex flex-col justify-between space-y-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#146ef5] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F172A] bg-white px-2 py-0.5 rounded border border-[#D5DEE9]">
                     Category: {product.category}
                   </span>
-                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <span className="text-[10px] font-semibold text-[#067647] bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30">
                     ✓ {product.is_active ? 'Active in Catalog' : 'Draft'}
                   </span>
                 </div>
-                <h2 className="text-base sm:text-lg font-bold text-[#080808] tracking-tight mt-1 leading-snug">
+                <h2 className="text-base sm:text-lg font-bold text-[#0F172A] tracking-tight mt-1 leading-snug font-['Inter']">
                   {product.name}
                 </h2>
-                <p className="text-xs text-[#52525b] mt-1 line-clamp-2">
+                <p className="text-xs text-[#526176] mt-1 line-clamp-2 font-['Inter']">
                   {product.description}
                 </p>
               </div>
 
               {/* Economic Numbers Grid */}
-              <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-[#e4e4e7]">
-                <div className="p-2 rounded-lg bg-white border border-[#e4e4e7]">
-                  <div className="text-[10px] text-[#71717a] font-medium">Selling Price</div>
-                  <div className="text-sm font-bold text-[#080808] mt-0.5">
+              <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-[#D5DEE9]">
+                <div className="p-2 rounded-lg bg-white border border-[#D5DEE9]">
+                  <div className="text-[10px] text-[#667085] font-medium font-['Inter']">Selling Price</div>
+                  <div className="text-sm font-bold text-[#0F172A] mt-0.5 font-['Inter']">
                     {formatPaise(product.price_paise)}
                   </div>
                 </div>
-                <div className="p-2 rounded-lg bg-white border border-[#e4e4e7]">
-                  <div className="text-[10px] text-[#71717a] font-medium">Wholesale COGS</div>
-                  <div className="text-sm font-mono text-[#52525b] mt-0.5">
+                <div className="p-2 rounded-lg bg-white border border-[#D5DEE9]">
+                  <div className="text-[10px] text-[#667085] font-medium font-['Inter']">Wholesale COGS</div>
+                  <div className="text-sm font-mono text-[#526176] mt-0.5">
                     {formatPaise(product.cost_paise)}
                   </div>
                 </div>
-                <div className="p-2 rounded-lg bg-white border border-[#e4e4e7]">
-                  <div className="text-[10px] text-[#71717a] font-medium">Gross Margin</div>
-                  <div className="text-sm font-bold text-emerald-700 mt-0.5">
+                <div className="p-2 rounded-lg bg-white border border-[#D5DEE9]">
+                  <div className="text-[10px] text-[#667085] font-medium font-['Inter']">Gross Margin</div>
+                  <div className="text-sm font-bold text-[#067647] mt-0.5 font-mono">
                     {marginPct}%
                   </div>
                 </div>
               </div>
 
               {/* Stock Levels */}
-              <div className="flex items-center justify-between text-xs text-[#71717a] px-1">
+              <div className="flex items-center justify-between text-xs text-[#667085] px-1 font-['Inter']">
                 <span>
-                  Physical Inventory: <strong className="text-[#080808]">{product.inventory_quantity} units</strong>
+                  Physical Inventory: <strong className="text-[#0F172A]">{product.inventory_quantity} units</strong>
                 </span>
                 <span>
-                  Reserved for Orders: <strong className="text-[#080808]">{product.reserved_quantity || 0} units</strong>
+                  Reserved for Orders: <strong className="text-[#0F172A]">{product.reserved_quantity || 0} units</strong>
                 </span>
               </div>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-1 border-b border-[#e4e4e7] pb-1">
+          <div className="flex items-center gap-1 border-b border-[#D5DEE9] pb-1">
             <button
               onClick={() => setActiveTab('overview')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'overview'
-                  ? 'bg-[#080808] text-white'
-                  : 'text-[#71717a] hover:text-[#080808] hover:bg-[#f4f4f5]'
+                  ? 'bg-[#0F172A] text-white'
+                  : 'text-[#526176] hover:text-[#0F172A] hover:bg-[#F8FAFC]'
               }`}
             >
               Complete Description & Specs
@@ -196,12 +196,12 @@ export function ProductDetailModal({
               onClick={() => setActiveTab('marketplaces')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5 ${
                 activeTab === 'marketplaces'
-                  ? 'bg-[#080808] text-white'
-                  : 'text-[#71717a] hover:text-[#080808] hover:bg-[#f4f4f5]'
+                  ? 'bg-[#0F172A] text-white'
+                  : 'text-[#526176] hover:text-[#0F172A] hover:bg-[#F8FAFC]'
               }`}
             >
               <span>Marketplace Channels</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#f4f4f5] text-[#080808] border border-[#e4e4e7]">
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#F8FAFC] text-[#0F172A] border border-[#D5DEE9]">
                 {marketplaces.length || 5}
               </span>
             </button>
@@ -209,16 +209,16 @@ export function ProductDetailModal({
               onClick={() => setActiveTab('recommendations')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5 ${
                 activeTab === 'recommendations'
-                  ? 'bg-[#146ef5] text-white'
-                  : 'text-[#71717a] hover:text-[#080808] hover:bg-[#f4f4f5]'
+                  ? 'bg-[#0F172A] text-white'
+                  : 'text-[#526176] hover:text-[#0F172A] hover:bg-[#F8FAFC]'
               }`}
             >
-              <Sparkles className="w-3 h-3 text-amber-300" />
+              <Sparkles className="w-3 h-3 text-[#087F6B]" />
               <span>AI Recommendations</span>
               <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
                 recommendations.length > 0
-                  ? 'bg-amber-100 text-amber-800 font-bold'
-                  : 'bg-[#f4f4f5] text-[#71717a]'
+                  ? 'bg-[#FFF4DB] text-[#92400E] font-bold border border-[#92400E]/30'
+                  : 'bg-[#F8FAFC] text-[#526176]'
               }`}>
                 {recommendations.length > 0 ? recommendations.length : 'None'}
               </span>

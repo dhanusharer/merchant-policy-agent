@@ -31,3 +31,10 @@ scratch/
 # OS Specific
 .DS_Store
 Thumbs.db
+
+# WhatsApp Web Connector Sessions & Dependencies
+connector/node_modules/
+.wwebjs_auth/
+connector/.wwebjs_auth/
+.wwebjs_cache/
+connector/.wwebjs_cache/

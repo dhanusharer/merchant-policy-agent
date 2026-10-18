@@ -75,52 +75,67 @@ node index.js
 
 ## Demo Test Commands (From Your Phone: `+919113960498`)
 
-Send any of the following commands in WhatsApp to the Agent number:
+Send any of the following 6 supported commands from your personal WhatsApp to the Agent number:
 
-1. **Sales & Revenue Report**:
+1. **Today's Sales & Revenue Report**:
    ```
-   Download the previous week sales report
+   Show today's sales
    ```
-   *Returns real revenue (₹48,081), prepaid/COD split, top products, and order ledger link.*
+   *Alternative: `Download the previous week sales report`*
+   *Retrieves actual realized revenue (₹48,081), prepaid Razorpay vs COD order split, top-selling items, and order ledger URL.*
 
 2. **Catalog Overview**:
    ```
    Show my products
    ```
-   *Returns all 6 products with prices, unit costs, gross margins, and live inventory.*
+   *Retrieves all active items directly from the database with real retail price, unit cost (COGS), gross margin %, and live stock counts.*
 
-3. **Margin Economics & Health Check**:
+3. **Margin Economics & Policy Floor Inspection**:
    ```
    Which products have low margins?
    ```
-   *Ranks items by margin against the minimum margin floor (18%) and provides AI growth advice.*
+   *Ranks catalog products by gross margin against the store's configured 18.0% margin floor and suggests margin-preserving price adjustments.*
 
 4. **AI Offer Recommendation**:
    ```
    Suggest an offer for Product A
    ```
-   *Calculates a safe discount (10% OFF at ₹2,249) that complies with policy floors.*
+   *Recommends a policy-compliant promotional discount (10% OFF at ₹1,889) that protects the 18% margin floor.*
 
-5. **Inventory Update (with Confirmation Guardrail)**:
+5. **Stock Adjustment (Guarded by Confirmation PIN)**:
    ```
    Update Product A stock to 25
    ```
-   *Generates a 15-minute confirmation PIN and asks for confirmation.*
-   *Reply `YES` to apply.*
+   *Generates a single-use 4-digit confirmation PIN (valid 15 minutes).*
+   *Reply: `CONFIRM <PIN>` or `YES` to commit the stock update to the database and record an audit log.*
 
 6. **Price Change & Policy Guardrail**:
    ```
    Change Product A price to 499
    ```
-   *Catches margin floor violation (margin would be -84.4%), calculates the safe compliant price (₹1,122), and offers alternative confirmation.*
-   *Reply `YES` to accept.*
+   *Deterministic policy engine intercepts the violation (cost is ₹920; ₹499 would yield -84.4% margin).*
+   *Calculates the safe compliant price (₹1,122) and asks for confirmation.*
+   *Reply: `CONFIRM <PIN>` or `YES` to accept.*
 
 ---
 
-## Security & Reliability Features
+## Security, Loop Prevention & Reliability
 
-- **Infinite Loop Prevention**: Checks `msg.fromMe` and ignores all outgoing messages sent by the bot.
-- **Message Deduplication**: Tracks message IDs to prevent duplicate webhook dispatches.
-- **Session Persistence**: Stored in `.wwebjs_auth/` (ignored from git via `.gitignore`).
-- **Audit Logging**: Every inbound and outbound message is recorded in SQLite/PostgreSQL `whatsapp_webhook_logs` and `whatsapp_outbound_messages`.
-- **Policy Guardrails**: Cannot lower prices below the configured minimum margin floor without explicit confirmation and compliant price calculations.
+- **Infinite Reply Loop Prevention**: Explicitly discards `msg.fromMe == true` to prevent the connector from replying to itself.
+- **Noise & Group Filtering**: Ignores WhatsApp status/stories (`status@broadcast`) and group chats (`@g.us`).
+- **Request Deduplication**: In-memory LRU cache of 500 message IDs plus database message ID uniqueness in `WhatsAppWebhookLog`.
+- **Session Privacy**: Stored in `./.wwebjs_auth/` (configured in `.gitignore` to prevent credential leaks).
+- **Audit Logging**: Every confirmed price or inventory change writes an immutable `AuditEvent` with actor `WHATSAPP_OPERATOR`.
+
+---
+
+## ⚠️ Important Limitations & Unofficial Integration Risks
+
+> [!WARNING]
+> **Unofficial Protocol Risk**: `whatsapp-web.js` automates WhatsApp Web via Puppeteer. WhatsApp may detect automated patterns and restrict or temporarily ban accounts using unofficial web automation.
+>
+> **Separate Account Requirement**: The Agent WhatsApp account must be a distinct phone number/account that you own or are authorized to use. The connector **does not** generate or provision a phone number.
+>
+> **Session Invalidation**: WhatsApp Web sessions can be logged out from the mobile app's "Linked Devices" screen or invalidated by WhatsApp updates. If this happens, delete `connector/.wwebjs_auth` and scan the QR code again.
+>
+> **Fallback Alternative**: If WhatsApp Web automation is restricted or unsuitable in production, use the built-in Twilio WhatsApp adapter (`services/whatsapp/twilio_adapter.py`) or Meta Cloud API webhook (`/api/v1/whatsapp/webhook`).

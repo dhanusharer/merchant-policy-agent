@@ -262,6 +262,12 @@ export default function OverviewPage() {
   // Hero product ID for recommendation
   const heroProduct = products.find((p) => p.sku === 'VAST-SH-01' || p.name?.toLowerCase().includes('oxford') || p.name?.toLowerCase().includes('shirt')) || products[0];
 
+  const merchantDisplayName = currentMerchant?.name && currentMerchant.name !== 'Vyapar Mitra'
+    ? currentMerchant.name
+    : 'Vastram';
+
+  const merchantInitial = (merchantDisplayName?.trim()?.charAt(0) || 'V').toUpperCase();
+
   return (
     <div className="w-full space-y-6">
       
@@ -281,10 +287,10 @@ export default function OverviewPage() {
         {/* Content Container (Top row has 0% backdrop tint, completely clear) */}
         <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-6 md:p-8">
           
-          {/* Top Row: Vyapar Mitra Logo & Ask Agent */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            {/* Left: Vyapar Mitra Brand Logo (No black fade behind logo, slightly larger size, crystal clear) */}
-            <div className="flex items-center gap-3 shrink-0">
+          {/* Top Row: Left Logo | Center Ask AI Agent | Right "V" Merchant Circle */}
+          <div className="relative flex items-center justify-between w-full">
+            {/* Left: Vyapar Mitra Brand Logo */}
+            <div className="flex items-center gap-3 shrink-0 z-10">
               <Link href="/" className="inline-flex items-center transition-transform hover:scale-[1.01]">
                 <img
                   src="/vyapar_mitra_logo.png"
@@ -294,8 +300,8 @@ export default function OverviewPage() {
               </Link>
             </div>
 
-            {/* Right: Ask Agent Form */}
-            <div className="w-full sm:w-80 md:w-96 shrink-0">
+            {/* Middle: Ask AI Agent Form (Centered at top middle of the banner) */}
+            <div className="absolute left-1/2 -translate-x-1/2 w-56 sm:w-72 md:w-80 lg:w-96 max-w-[50%] z-10">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -303,38 +309,47 @@ export default function OverviewPage() {
                 }}
                 className="relative flex items-center"
               >
-                <Bot className="w-4 h-4 text-[#71717a] absolute left-3 pointer-events-none" />
+                <Bot className="w-3.5 h-3.5 text-[#71717a] absolute left-3 pointer-events-none" />
                 <input
                   type="text"
                   value={agentQuery}
                   onChange={(e) => setAgentQuery(e.target.value)}
                   placeholder="Ask Vyapar Mitra Agent..."
-                  className="w-full text-xs font-medium pl-9 pr-16 py-2 bg-white/95 text-[#080808] border border-white/60 rounded-lg shadow-xs placeholder:text-[#71717a] focus:bg-white focus:outline-none transition-all"
+                  className="w-full text-xs font-medium pl-8.5 pr-14 py-2 bg-white/95 text-[#080808] border border-white/60 rounded-lg shadow-sm placeholder:text-[#71717a] focus:bg-white focus:outline-none transition-all"
                 />
                 <button
                   type="submit"
                   disabled={isAnswering}
-                  className="absolute right-1 px-3 py-1.5 bg-[#18181b] hover:bg-[#27272a] text-white text-[11px] font-semibold rounded-md transition-colors flex items-center gap-1 shadow-2xs"
+                  className="absolute right-1 px-2.5 py-1.5 bg-[#18181b] hover:bg-[#27272a] text-white text-[11px] font-semibold rounded-md transition-colors flex items-center gap-1 shadow-2xs"
                 >
                   <span>Ask</span>
                   <Send className="w-3 h-3" />
                 </button>
               </form>
             </div>
+
+            {/* Right: "V" Merchant Circle Avatar (Separated on the right side, ~2 inch diameter ~56px) */}
+            <div className="shrink-0 z-10 flex items-center justify-end">
+              <div
+                title={`Merchant: ${merchantDisplayName}`}
+                className="w-12 h-12 sm:w-14 sm:h-14 md:w-14 md:h-14 rounded-full bg-white text-[#0F172A] border-2 border-white/90 shadow-md flex items-center justify-center font-heading font-extrabold text-xl sm:text-2xl tracking-wide select-none transition-transform hover:scale-105"
+              >
+                {merchantInitial}
+              </div>
+            </div>
           </div>
 
-          {/* Bottom Hero Text Inside Banner */}
-          <div className="space-y-1">
-            <div className="text-[11px] font-mono font-medium tracking-wider text-white/95 uppercase drop-shadow-xs">
-              Merchant Operations & Policy Governance
-            </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white drop-shadow-sm">
-              Vyapar Mitra Dashboard
-            </h1>
-            <p className="text-xs text-white/90 max-w-2xl font-normal drop-shadow-xs hidden sm:block">
-              Multi-channel margin protection, autonomous stock replenishment, and WhatsApp commerce negotiation.
-            </p>
-          </div>
+          {/* Bottom Hero Text Inside Banner: Stacked Merchant Command Center | Merchant Name */}
+          <h1 className="flex items-center gap-3.5 sm:gap-5 drop-shadow-sm">
+            <span className="flex flex-col font-heading font-bold text-white text-base sm:text-xl md:text-2xl leading-[1.1] border-r-2 sm:border-r-[2.5px] border-white/60 pr-3.5 sm:pr-5">
+              <span>Merchant</span>
+              <span>Command</span>
+              <span>Center</span>
+            </span>
+            <span className="font-heading font-extrabold text-3xl sm:text-4xl md:text-5xl text-white tracking-tight">
+              {merchantDisplayName}
+            </span>
+          </h1>
 
         </div>
       </div>
@@ -344,29 +359,29 @@ export default function OverviewPage() {
 
         {/* Toast Notification for Instant Feedback */}
         {actionSuccess && (
-          <div className="p-3.5 rounded-[8px] bg-emerald-50 border border-emerald-300 text-xs font-semibold text-emerald-900 flex items-center gap-2 shadow-sm animate-fade-in">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <div className="p-3.5 rounded-[8px] bg-[#E8F7F1] border border-[#067647]/30 text-xs font-semibold text-[#067647] flex items-center gap-2 shadow-xs animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 text-[#067647] shrink-0" />
             <span>{actionSuccess}</span>
           </div>
         )}
 
         {error && (
-          <div className="p-3.5 rounded-[8px] bg-rose-50 border border-rose-300 text-xs text-rose-800 flex items-center gap-2 shadow-sm">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div className="p-3.5 rounded-[8px] bg-[#FFF4DB] border border-[#92400E]/30 text-xs text-[#92400E] flex items-center gap-2 shadow-xs">
+            <AlertCircle className="w-4 h-4 text-[#92400E] shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
       {/* Dismissible Agent Answer if user asked something */}
       {agentAnswer && (
-        <div className="p-3.5 bg-[#f8fafc] border border-[#cbd5e1] rounded-lg text-xs text-[#080808] shadow-xs flex items-start justify-between gap-3 animate-fade-in">
+        <div className="p-3.5 bg-[#F8FAFC] border border-[#D5DEE9] rounded-[12px] text-xs text-[#0F172A] shadow-xs flex items-start justify-between gap-3 animate-fade-in">
           <div className="flex items-start gap-2.5">
-            <Sparkles className="w-4 h-4 text-[#146ef5] shrink-0 mt-0.5" />
+            <Sparkles className="w-4 h-4 text-[#087F6B] shrink-0 mt-0.5" />
             <p className="leading-relaxed font-medium">{agentAnswer}</p>
           </div>
           <button
             onClick={() => setAgentAnswer(null)}
-            className="text-[#64748b] hover:text-[#080808] text-xs font-semibold px-1"
+            className="text-[#667085] hover:text-[#0F172A] text-xs font-semibold px-1"
           >
             ✕
           </button>
@@ -376,48 +391,48 @@ export default function OverviewPage() {
       {/* Visual Differentiator / Separator Divider */}
       <div className="relative py-1 flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[#e4e4e7]" />
+          <div className="w-full border-t border-[#D5DEE9]" />
         </div>
-        <div className="relative bg-white px-3.5 py-1 rounded-full border border-[#e4e4e7] text-[11px] font-semibold text-[#52525b] uppercase tracking-wider shadow-2xs flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+        <div className="relative bg-white px-3.5 py-1 rounded-full border border-[#D5DEE9] text-[11px] font-semibold text-[#526176] uppercase tracking-wider shadow-[0_2px_6px_rgba(15,23,42,0.04)] flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#087F6B]" />
           <span>Live Operations & Demand Monitor</span>
         </div>
       </div>
 
       {/* ============================================================== */}
       {/* SECTION 1: HIGH-DENSITY OPERATIONS & INSIGHTS COCKPIT          */}
-      {/* Professional enterprise design with unified palette & larger KPIs */}
+      {/* Professional enterprise design with unified palette & visible headers */}
       {/* ============================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* LEFT COLUMN (7 Cols): Financial Pulse & Compact Live Orders */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="bg-white border border-[#D5DEE9] rounded-[16px] overflow-hidden shadow-[0_2px_6px_rgba(15,23,42,0.04)]">
             
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#f4f4f5]">
+            {/* Distinct Section Header with #E8EEF5 background and #C4CFDC bottom border */}
+            <div className="bg-[#E8EEF5] border-b border-[#C4CFDC] px-5 py-3.5 sm:px-6 sm:py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <span className="p-1.5 rounded-lg bg-[#f4f4f5] text-[#18181b]">
+                <span className="p-2 rounded-lg bg-[#0F172A] text-white shadow-xs">
                   <ShoppingBag className="w-4 h-4" />
                 </span>
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold text-[#09090b] tracking-tight">
+                  <h2 className="font-heading text-[19px] font-bold text-[#0F172A] tracking-tight">
                     Todays Orders & Revenue Pulse
                   </h2>
-                  <p className="text-[11px] text-[#71717a]">
+                  <p className="font-['Inter'] text-[14px] text-[#526176]">
                     18 verified orders across WhatsApp Direct, Amazon & Website
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono font-medium text-[#52525b] bg-[#f4f4f5] px-2.5 py-0.5 rounded-md border border-[#e4e4e7] hidden sm:inline-flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                <span className="text-[11px] font-mono font-medium text-[#526176] bg-white px-2.5 py-1 rounded-md border border-[#D5DEE9] hidden sm:inline-flex items-center gap-1.5 shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#087F6B]" />
                   <span>3 Active Channels</span>
                 </span>
                 <button
                   onClick={loadData}
-                  className="p-1.5 rounded-lg border border-[#e4e4e7] hover:bg-[#f4f4f5] text-[#52525b] transition-colors"
+                  className="p-1.5 rounded-lg border border-[#D5DEE9] bg-white hover:bg-[#F8FAFC] text-[#526176] transition-colors shadow-xs"
                   title="Refresh Orders"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -425,178 +440,182 @@ export default function OverviewPage() {
               </div>
             </div>
 
-            {/* Today's KPI Metric Cards (Increased Size & Executive Clarity) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
-              
-              {/* Card 1: Orders Today */}
-              <div className="p-4.5 sm:p-5.5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] shadow-xs flex flex-col justify-between min-h-[136px] sm:min-h-[146px] hover:border-[#18181b] transition-all group">
+            {/* Section Body */}
+            <div className="p-5 sm:p-6 bg-white space-y-5">
+              {/* Today's KPI Metric Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
+                
+                {/* Card 1: Orders Today */}
+                <div className="p-4 sm:p-5 rounded-[12px] bg-white border border-[#D5DEE9] shadow-[0_2px_6px_rgba(15,23,42,0.04)] flex flex-col justify-between min-h-[136px] sm:min-h-[146px] hover:border-[#0F172A] transition-all group">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-[#526176] uppercase tracking-wider">Orders Today</span>
+                    <div className="p-1.5 rounded-lg bg-[#F8FAFC] border border-[#D5DEE9] text-[#0F172A] shadow-xs group-hover:bg-[#0F172A] group-hover:text-white transition-colors">
+                      <ShoppingBag className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="my-2">
+                    <div className="font-['Inter'] text-[24px] font-bold text-[#0F172A] tracking-tight tabular-nums">
+                      18 <span className="text-sm font-normal text-[#667085]">Orders</span>
+                    </div>
+                  </div>
+                  <div className="text-[11px] font-semibold text-[#067647] flex items-center gap-1">
+                    <span>✓ 100% Paid & Verified</span>
+                  </div>
+                </div>
+
+                {/* Card 2: Revenue Today */}
+                <div className="p-4 sm:p-5 rounded-[12px] bg-white border border-[#D5DEE9] shadow-[0_2px_6px_rgba(15,23,42,0.04)] flex flex-col justify-between min-h-[136px] sm:min-h-[146px] hover:border-[#0F172A] transition-all group">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-[#526176] uppercase tracking-wider">Revenue Today</span>
+                    <div className="p-1.5 rounded-lg bg-[#F8FAFC] border border-[#D5DEE9] text-[#0F172A] shadow-xs group-hover:bg-[#0F172A] group-hover:text-white transition-colors">
+                      <DollarSign className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="my-2">
+                    <div className="font-['Inter'] text-[24px] font-bold text-[#0F172A] tracking-tight tabular-nums">
+                      ₹44,982
+                    </div>
+                  </div>
+                  <div className="text-[11px] font-medium text-[#526176]">
+                    +18.4% vs benchmark
+                  </div>
+                </div>
+
+                {/* Card 3: Gross Profit */}
+                <div className="p-4 sm:p-5 rounded-[12px] bg-white border border-[#D5DEE9] shadow-[0_2px_6px_rgba(15,23,42,0.04)] flex flex-col justify-between min-h-[136px] sm:min-h-[146px] hover:border-[#0F172A] transition-all group">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-[#526176] uppercase tracking-wider">Gross Profit</span>
+                    <div className="p-1.5 rounded-lg bg-[#F8FAFC] border border-[#D5DEE9] text-[#0F172A] shadow-xs group-hover:bg-[#0F172A] group-hover:text-white transition-colors">
+                      <TrendingUp className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="my-2">
+                    <div className="font-['Inter'] text-[24px] font-bold text-[#0F172A] tracking-tight tabular-nums">
+                      ₹26,090
+                    </div>
+                  </div>
+                  <div className="text-[11px] font-semibold text-[#067647]">
+                    58.0% Net Gross Margin
+                  </div>
+                </div>
+
+                {/* Card 4: Avg Order Value */}
+                <div className="p-4 sm:p-5 rounded-[12px] bg-white border border-[#D5DEE9] shadow-[0_2px_6px_rgba(15,23,42,0.04)] flex flex-col justify-between min-h-[136px] sm:min-h-[146px] hover:border-[#0F172A] transition-all group">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-[#526176] uppercase tracking-wider">Avg Order Value</span>
+                    <div className="p-1.5 rounded-lg bg-[#F8FAFC] border border-[#D5DEE9] text-[#0F172A] shadow-xs group-hover:bg-[#0F172A] group-hover:text-white transition-colors">
+                      <Tag className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="my-2">
+                    <div className="font-['Inter'] text-[24px] font-bold text-[#0F172A] tracking-tight tabular-nums">
+                      ₹2,499
+                    </div>
+                  </div>
+                  <div className="text-[11px] font-medium text-[#526176] truncate">
+                    Top SKU: Oxford Shirt
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Real-time Channel Revenue Share Breakdown Bar */}
+              <div className="p-4 rounded-[12px] bg-[#F8FAFC] border border-[#D5DEE9] space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-[#0F172A] flex items-center gap-1.5 text-[12px]">
+                    <TrendingUp className="w-3.5 h-3.5 text-[#526176]" />
+                    <span>Channel Contribution & Margin Efficiency</span>
+                  </span>
+                  <span className="text-[#667085] font-mono text-[11px]">Total captured: ₹44,982</span>
+                </div>
+
+                {/* Progress Stacked Bar */}
+                <div className="w-full h-2.5 rounded-full overflow-hidden bg-[#D5DEE9] flex">
+                  <div style={{ width: '64.2%' }} className="bg-[#0F172A] h-full" title="WhatsApp Direct: 64.2%" />
+                  <div style={{ width: '29.6%' }} className="bg-[#526176] h-full" title="Amazon Prime: 29.6%" />
+                  <div style={{ width: '6.2%' }} className="bg-[#C4CFDC] h-full" title="Direct Web: 6.2%" />
+                </div>
+
+                {/* Channel Legend & Profit Ratios */}
+                <div className="grid grid-cols-3 gap-2 pt-1 text-[11px]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#0F172A] shrink-0" />
+                    <span className="font-semibold text-[#0F172A]">WhatsApp</span>
+                    <span className="text-[#067647] font-medium font-mono text-[10px]">65.8% margin</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#526176] shrink-0" />
+                    <span className="font-semibold text-[#0F172A]">Amazon</span>
+                    <span className="text-[#526176] font-medium font-mono text-[10px]">42.1% margin</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#C4CFDC] shrink-0" />
+                    <span className="font-semibold text-[#0F172A]">Website</span>
+                    <span className="text-[#526176] font-medium font-mono text-[10px]">61.5% margin</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Captured Orders - Space-Efficient High-Density Feed */}
+              <div className="space-y-2.5 pt-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#52525b] uppercase tracking-wider">Orders Today</span>
-                  <div className="p-1.5 rounded-lg bg-white border border-[#e4e4e7] text-[#18181b] shadow-2xs group-hover:bg-[#18181b] group-hover:text-white transition-colors">
-                    <ShoppingBag className="w-4 h-4" />
+                  <div className="text-[12px] font-semibold text-[#0F172A] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>Live Transaction Stream:</span>
+                    <span className="text-[11px] font-mono text-[#667085] font-normal">(Instant UPI & Verification)</span>
                   </div>
+                  <Link href="/orders" className="text-[12px] font-semibold text-[#0F172A] hover:text-[#1E293B] hover:underline flex items-center gap-0.5">
+                    <span>View All 18 Orders</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
-                <div className="my-2">
-                  <div className="text-2xl sm:text-3xl lg:text-[32px] font-black text-[#09090b] tracking-tight tabular-nums">
-                    18 <span className="text-sm font-normal text-[#71717a]">Orders</span>
-                  </div>
-                </div>
-                <div className="text-xs font-medium text-emerald-700 flex items-center gap-1">
-                  <span>✓ 100% Paid & Verified</span>
-                </div>
-              </div>
 
-              {/* Card 2: Revenue Today */}
-              <div className="p-4.5 sm:p-5.5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] shadow-xs flex flex-col justify-between min-h-[136px] sm:min-h-[146px] hover:border-[#18181b] transition-all group">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#52525b] uppercase tracking-wider">Revenue Today</span>
-                  <div className="p-1.5 rounded-lg bg-white border border-[#e4e4e7] text-[#18181b] shadow-2xs group-hover:bg-[#18181b] group-hover:text-white transition-colors">
-                    <DollarSign className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="my-2">
-                  <div className="text-2xl sm:text-3xl lg:text-[32px] font-black text-[#09090b] tracking-tight tabular-nums">
-                    ₹44,982
-                  </div>
-                </div>
-                <div className="text-xs font-medium text-[#71717a]">
-                  +18.4% vs benchmark
-                </div>
-              </div>
+                <div className="divide-y divide-[#D5DEE9] border border-[#D5DEE9] rounded-[12px] overflow-hidden bg-white shadow-[0_2px_6px_rgba(15,23,42,0.04)]">
+                  {todaysOrdersList.slice(0, 4).map((ord) => (
+                    <div
+                      key={ord.id}
+                      onClick={() => setSelectedOrder(ord)}
+                      className="p-3.5 hover:bg-[#F8FAFC] active:bg-[#E8EEF5] flex items-center justify-between gap-3 cursor-pointer transition-colors group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={ord.image}
+                          alt={ord.productName}
+                          className="w-10 h-10 rounded-lg object-cover bg-[#F8FAFC] border border-[#D5DEE9] shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-['Inter'] text-[14px] font-semibold text-[#0F172A] truncate group-hover:text-[#087F6B] transition-colors">
+                              {ord.productName}
+                            </h4>
+                            <span className="text-[11px] font-mono font-medium text-[#526176] bg-[#F8FAFC] px-1.5 py-0.5 rounded border border-[#D5DEE9] shrink-0">
+                              {ord.channelName}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-[#667085] mt-0.5 flex items-center gap-2 font-mono">
+                            <span>{ord.sku}</span>
+                            <span>•</span>
+                            <span>{ord.time}</span>
+                            <span className="text-[#067647] hidden sm:inline font-semibold">+{ord.marginPercent}% margin</span>
+                          </div>
+                        </div>
+                      </div>
 
-              {/* Card 3: Gross Profit */}
-              <div className="p-4.5 sm:p-5.5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] shadow-xs flex flex-col justify-between min-h-[136px] sm:min-h-[146px] hover:border-[#18181b] transition-all group">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#52525b] uppercase tracking-wider">Gross Profit</span>
-                  <div className="p-1.5 rounded-lg bg-white border border-[#e4e4e7] text-[#18181b] shadow-2xs group-hover:bg-[#18181b] group-hover:text-white transition-colors">
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="my-2">
-                  <div className="text-2xl sm:text-3xl lg:text-[32px] font-black text-[#09090b] tracking-tight tabular-nums">
-                    ₹26,090
-                  </div>
-                </div>
-                <div className="text-xs font-semibold text-emerald-700">
-                  58.0% Net Gross Margin
-                </div>
-              </div>
-
-              {/* Card 4: Avg Order Value */}
-              <div className="p-4.5 sm:p-5.5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] shadow-xs flex flex-col justify-between min-h-[136px] sm:min-h-[146px] hover:border-[#18181b] transition-all group">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#52525b] uppercase tracking-wider">Avg Order Value</span>
-                  <div className="p-1.5 rounded-lg bg-white border border-[#e4e4e7] text-[#18181b] shadow-2xs group-hover:bg-[#18181b] group-hover:text-white transition-colors">
-                    <Tag className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="my-2">
-                  <div className="text-2xl sm:text-3xl lg:text-[32px] font-black text-[#09090b] tracking-tight tabular-nums">
-                    ₹2,499
-                  </div>
-                </div>
-                <div className="text-xs font-medium text-[#71717a] truncate">
-                  Top SKU: Oxford Shirt
-                </div>
-              </div>
-
-            </div>
-
-            {/* Real-time Channel Revenue Share Breakdown Bar (Refined Enterprise Design) */}
-            <div className="p-3.5 rounded-xl bg-[#fbfbfb] border border-[#e4e4e7] space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-[#18181b] flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-[#52525b]" />
-                  <span>Channel Contribution & Margin Efficiency</span>
-                </span>
-                <span className="text-[#71717a] font-mono text-[11px]">Total captured: ₹44,982</span>
-              </div>
-
-              {/* Progress Stacked Bar */}
-              <div className="w-full h-2 rounded-full overflow-hidden bg-[#e4e4e7] flex">
-                <div style={{ width: '64.2%' }} className="bg-[#18181b] h-full" title="WhatsApp Direct: 64.2%" />
-                <div style={{ width: '29.6%' }} className="bg-[#52525b] h-full" title="Amazon Prime: 29.6%" />
-                <div style={{ width: '6.2%' }} className="bg-[#a1a1aa] h-full" title="Direct Web: 6.2%" />
-              </div>
-
-              {/* Channel Legend & Profit Ratios */}
-              <div className="grid grid-cols-3 gap-2 pt-1 text-[11px]">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#18181b] shrink-0" />
-                  <span className="font-semibold text-[#09090b]">WhatsApp</span>
-                  <span className="text-emerald-700 font-medium font-mono text-[10px]">65.8% margin</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#52525b] shrink-0" />
-                  <span className="font-semibold text-[#09090b]">Amazon</span>
-                  <span className="text-[#52525b] font-medium font-mono text-[10px]">42.1% margin</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#a1a1aa] shrink-0" />
-                  <span className="font-semibold text-[#09090b]">Website</span>
-                  <span className="text-[#52525b] font-medium font-mono text-[10px]">61.5% margin</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Captured Orders - Space-Efficient High-Density Feed */}
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between">
-                <div className="text-xs font-semibold text-[#09090b] uppercase tracking-wider flex items-center gap-1.5">
-                  <span>Live Transaction Stream:</span>
-                  <span className="text-[11px] font-mono text-[#71717a] font-normal">(Instant UPI & Verification)</span>
-                </div>
-                <Link href="/orders" className="text-xs font-medium text-[#18181b] hover:underline flex items-center gap-0.5">
-                  <span>View All 18 Orders</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              <div className="divide-y divide-[#f4f4f5] border border-[#e4e4e7] rounded-xl overflow-hidden bg-white shadow-2xs">
-                {todaysOrdersList.slice(0, 4).map((ord) => (
-                  <div
-                    key={ord.id}
-                    onClick={() => setSelectedOrder(ord)}
-                    className="p-3 hover:bg-[#fafafa] active:bg-[#f4f4f5] flex items-center justify-between gap-3 cursor-pointer transition-colors group"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <img
-                        src={ord.image}
-                        alt={ord.productName}
-                        className="w-10 h-10 rounded-lg object-cover bg-[#f4f4f5] border border-[#e4e4e7] shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-xs font-semibold text-[#09090b] truncate group-hover:text-[#18181b] transition-colors">
-                            {ord.productName}
-                          </h4>
-                          <span className="text-[10px] font-mono font-medium text-[#52525b] bg-[#f4f4f5] px-1.5 py-0.2 rounded border border-[#e4e4e7] shrink-0">
-                            {ord.channelName}
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <div className="text-right">
+                          <div className="font-['Inter'] text-[14px] font-bold text-[#0F172A] tabular-nums">
+                            {formatPaise(ord.amountPaise)}
+                          </div>
+                          <span className="text-[11px] font-semibold text-[#067647] bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30">
+                            Paid ✓
                           </span>
                         </div>
-                        <div className="text-[11px] text-[#71717a] mt-0.5 flex items-center gap-2 font-mono">
-                          <span>{ord.sku}</span>
-                          <span>•</span>
-                          <span>{ord.time}</span>
-                          <span className="text-emerald-700 hidden sm:inline font-medium">+{ord.marginPercent}% margin</span>
-                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-[#667085] group-hover:text-[#0F172A] transition-colors" />
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <div className="text-right">
-                        <div className="text-xs font-bold text-[#09090b] tabular-nums">
-                          {formatPaise(ord.amountPaise)}
-                        </div>
-                        <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                          Paid ✓
-                        </span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#a1a1aa] group-hover:text-[#18181b] transition-colors" />
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
+
             </div>
 
           </div>
@@ -604,127 +623,130 @@ export default function OverviewPage() {
 
         {/* RIGHT COLUMN (5 Cols): Real-Time Priority Insights & Action Radar */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 sm:p-5 shadow-xs space-y-3.5">
+          <div className="bg-white border border-[#D5DEE9] rounded-[16px] overflow-hidden shadow-[0_2px_6px_rgba(15,23,42,0.04)]">
             
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#f4f4f5]">
+            {/* Header with #E8EEF5 background and #C4CFDC bottom border */}
+            <div className="bg-[#E8EEF5] border-b border-[#C4CFDC] px-5 py-3.5 sm:px-6 sm:py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <span className="p-1.5 rounded-lg bg-[#f4f4f5] text-[#18181b]">
+                <span className="p-2 rounded-lg bg-[#0F172A] text-white shadow-xs">
                   <Zap className="w-4 h-4" />
                 </span>
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold text-[#09090b] tracking-tight">
+                  <h2 className="font-heading text-[19px] font-bold text-[#0F172A] tracking-tight">
                     Merchant Action Radar
                   </h2>
-                  <p className="text-[11px] text-[#71717a]">
+                  <p className="font-['Inter'] text-[14px] text-[#526176]">
                     Instant commercial levers & shortage prevention
                   </p>
                 </div>
               </div>
 
-              <span className="text-[10px] font-mono text-[#52525b] bg-[#f4f4f5] px-2.5 py-0.5 rounded-md border border-[#e4e4e7] font-semibold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+              <span className="text-[11px] font-mono text-[#526176] bg-white px-2.5 py-1 rounded-md border border-[#D5DEE9] font-semibold flex items-center gap-1.5 shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#087F6B]" />
                 <span>3 Immediate Levers</span>
               </span>
             </div>
 
-            {/* Lever 1: Critical Stock Shortage Alert */}
-            <div className="p-3.5 rounded-xl bg-white border border-[#e4e4e7] hover:border-[#d4d4d8] space-y-2.5 shadow-2xs transition-colors">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="text-[10px] font-mono font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 uppercase tracking-wider">
-                    STOCK SHORTAGE (&lt;8h)
+            {/* Body */}
+            <div className="p-5 sm:p-6 bg-white space-y-4">
+              {/* Lever 1: Critical Stock Shortage Alert */}
+              <div className="p-4 rounded-[12px] bg-white border border-[#D5DEE9] hover:border-[#C4CFDC] space-y-2.5 shadow-[0_2px_6px_rgba(15,23,42,0.04)] transition-all">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-[11px] font-['Inter'] font-semibold text-[#92400E] bg-[#FFF4DB] px-2 py-0.5 rounded border border-[#92400E]/30 uppercase tracking-wider">
+                      STOCK SHORTAGE (&lt;8h)
+                    </span>
+                    <h3 className="font-['Inter'] text-[14px] font-semibold text-[#0F172A] leading-tight mt-1.5">
+                      Classic Jet Black Formal Trousers
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-mono font-semibold text-[#92400E] bg-[#FFF4DB] px-2 py-0.5 rounded border border-[#92400E]/30">
+                    6 Units Left
                   </span>
-                  <h3 className="text-xs font-bold text-[#09090b] leading-tight mt-1">
-                    Classic Jet Black Formal Trousers
-                  </h3>
                 </div>
-                <span className="text-xs font-bold text-rose-700 font-mono bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                  6 Units Left
+
+                <div className="text-[14px] text-[#526176] font-['Inter'] flex items-center justify-between">
+                  <span>Velocity: <b className="text-[#0F172A]">12 orders/day</b></span>
+                  <span className="text-[#92400E] font-semibold font-mono text-[12px]">Lost GMV: -₹26,388/day</span>
+                </div>
+
+                <button
+                  onClick={() => handleReorder('prod_vastram_trouser_black', 'Classic Jet Black Formal Trousers', 50)}
+                  className="w-full py-2.5 px-3 bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-[8px] text-[14px] font-semibold font-['Inter'] flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Reorder +50 Units from Supplier</span>
+                </button>
+              </div>
+
+              {/* Lever 2: Recommended Price Lift (Instant Profit) */}
+              <div className="p-4 rounded-[12px] bg-white border border-[#D5DEE9] hover:border-[#C4CFDC] space-y-2.5 shadow-[0_2px_6px_rgba(15,23,42,0.04)] transition-all">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-[11px] font-['Inter'] font-semibold text-[#067647] bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30 uppercase tracking-wider">
+                      PRICE OPTIMIZATION
+                    </span>
+                    <h3 className="font-['Inter'] text-[14px] font-semibold text-[#0F172A] leading-tight mt-1.5">
+                      Classic White Oxford Cotton Shirt
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-mono font-semibold text-[#067647] bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30">
+                    +₹42,000/mo
+                  </span>
+                </div>
+
+                <p className="text-[14px] text-[#526176] font-['Inter'] leading-normal">
+                  Recommended lift: <b className="text-[#0F172A]">₹1,899 → ₹2,099</b> (+₹200/unit). 97.4% customer conversion retention modeled.
+                </p>
+
+                <button
+                  onClick={() => handleApplyPriceRecommendation(heroProduct?.id || 'prod_vastram_shirt_oxford', 209900)}
+                  className="w-full py-2.5 px-3 bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-[8px] text-[14px] font-semibold font-['Inter'] flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>Apply +₹200 Recommended Retail Price</span>
+                </button>
+              </div>
+
+              {/* Lever 3: WhatsApp Inactive Shopper Recovery */}
+              <div className="p-4 rounded-[12px] bg-white border border-[#D5DEE9] hover:border-[#C4CFDC] space-y-2.5 shadow-[0_2px_6px_rgba(15,23,42,0.04)] transition-all">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-[11px] font-['Inter'] font-semibold text-[#087F6B] bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#087F6B]/30 uppercase tracking-wider">
+                      WHATSAPP RETENTION
+                    </span>
+                    <h3 className="font-['Inter'] text-[14px] font-semibold text-[#0F172A] leading-tight mt-1.5">
+                      18 High-Intent Shopper Inquiries
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-mono font-semibold text-[#526176] bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9]">
+                    18 Pending
+                  </span>
+                </div>
+
+                <p className="text-[14px] text-[#526176] font-['Inter'] leading-normal">
+                  Inquiries awaiting quotes. A 5% festive voucher unlocks projected <b className="text-[#0F172A]">₹38,000 GMV</b> at 64.2% margin.
+                </p>
+
+                <Link
+                  href="/whatsapp"
+                  className="w-full py-2.5 px-3 bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-[8px] text-[14px] font-semibold font-['Inter'] flex items-center justify-center gap-1.5 transition-colors shadow-xs text-center"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Open WhatsApp Agent & Dispatch Deals</span>
+                </Link>
+              </div>
+
+              {/* Leakage Protection Counter */}
+              <div className="p-3.5 rounded-[12px] bg-[#F8FAFC] border border-[#D5DEE9] flex items-center justify-between text-[12px]">
+                <span className="text-[#526176] flex items-center gap-1.5 font-['Inter'] font-medium">
+                  <ShieldCheck className="w-4 h-4 text-[#0F172A]" />
+                  <span>Marketplace Fee Leakage Saved:</span>
+                </span>
+                <span className="font-bold text-[#0F172A] font-mono text-[13px]">
+                  +₹4,120 Saved Today
                 </span>
               </div>
-
-              <div className="text-[11px] text-[#52525b] flex items-center justify-between">
-                <span>Velocity: <b className="text-[#09090b]">12 orders/day</b></span>
-                <span className="text-rose-700 font-semibold font-mono">Lost GMV: -₹26,388/day</span>
-              </div>
-
-              <button
-                onClick={() => handleReorder('prod_vastram_trouser_black', 'Classic Jet Black Formal Trousers', 50)}
-                className="w-full py-2 px-3 bg-[#18181b] hover:bg-[#27272a] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Reorder +50 Units from Supplier</span>
-              </button>
-            </div>
-
-            {/* Lever 2: Recommended Price Lift (Instant Profit) */}
-            <div className="p-3.5 rounded-xl bg-white border border-[#e4e4e7] hover:border-[#d4d4d8] space-y-2.5 shadow-2xs transition-colors">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 uppercase tracking-wider">
-                    PRICE OPTIMIZATION
-                  </span>
-                  <h3 className="text-xs font-bold text-[#09090b] leading-tight mt-1">
-                    Classic White Oxford Cotton Shirt
-                  </h3>
-                </div>
-                <span className="text-xs font-bold text-emerald-700 font-mono bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  +₹42,000/mo
-                </span>
-              </div>
-
-              <p className="text-[11px] text-[#52525b] leading-tight">
-                Recommended lift: <b className="text-[#09090b]">₹1,899 → ₹2,099</b> (+₹200/unit). 97.4% customer conversion retention modeled.
-              </p>
-
-              <button
-                onClick={() => handleApplyPriceRecommendation(heroProduct?.id || 'prod_vastram_shirt_oxford', 209900)}
-                className="w-full py-2 px-3 bg-[#18181b] hover:bg-[#27272a] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
-              >
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>Apply +₹200 Recommended Retail Price</span>
-              </button>
-            </div>
-
-            {/* Lever 3: WhatsApp Inactive Shopper Recovery */}
-            <div className="p-3.5 rounded-xl bg-white border border-[#e4e4e7] hover:border-[#d4d4d8] space-y-2.5 shadow-2xs transition-colors">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="text-[10px] font-mono font-bold text-[#52525b] bg-[#f4f4f5] px-2 py-0.5 rounded border border-[#e4e4e7] uppercase tracking-wider">
-                    WHATSAPP RETENTION
-                  </span>
-                  <h3 className="text-xs font-bold text-[#09090b] leading-tight mt-1">
-                    18 High-Intent Shopper Inquiries
-                  </h3>
-                </div>
-                <span className="text-xs font-bold text-[#09090b] font-mono bg-[#f4f4f5] px-2 py-0.5 rounded border border-[#e4e4e7]">
-                  18 Pending
-                </span>
-              </div>
-
-              <p className="text-[11px] text-[#52525b] leading-tight">
-                Inquiries awaiting quotes. A 5% festive voucher unlocks projected <b className="text-[#09090b]">₹38,000 GMV</b> at 64.2% margin.
-              </p>
-
-              <Link
-                href="/whatsapp"
-                className="w-full py-2 px-3 bg-white hover:bg-[#f4f4f5] text-[#18181b] border border-[#d4d4d8] rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-2xs text-center"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>Open WhatsApp Agent & Dispatch Deals</span>
-              </Link>
-            </div>
-
-            {/* Leakage Protection Counter */}
-            <div className="p-3 rounded-xl bg-[#fafafa] border border-[#e4e4e7] flex items-center justify-between text-[11px]">
-              <span className="text-[#52525b] flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#18181b]" />
-                <span>Marketplace Fee Leakage Saved:</span>
-              </span>
-              <span className="font-bold text-[#09090b] font-mono">
-                +₹4,120 Saved Today
-              </span>
             </div>
 
           </div>
@@ -745,107 +767,110 @@ export default function OverviewPage() {
           />
 
           {/* Modal / Sheet Content */}
-          <div className="relative bg-white rounded-t-2xl sm:rounded-2xl max-w-lg w-full mx-auto p-5 sm:p-6 shadow-2xl border border-[#e4e4e7] z-10 max-h-[90vh] overflow-y-auto animate-slide-up space-y-4">
+          <div className="relative bg-white rounded-t-2xl sm:rounded-[16px] max-w-lg w-full mx-auto shadow-2xl border border-[#D5DEE9] z-10 max-h-[90vh] overflow-hidden animate-slide-up flex flex-col">
             
             {/* Top Handle on Mobile */}
-            <div className="w-10 h-1 bg-[#d4d4d8] rounded-full mx-auto sm:hidden" />
+            <div className="w-10 h-1 bg-[#C4CFDC] rounded-full mx-auto mt-2 sm:hidden shrink-0" />
 
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#f4f4f5]">
+            <div className="bg-[#E8EEF5] border-b border-[#C4CFDC] px-5 py-4 flex items-center justify-between shrink-0">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono font-bold bg-[#f4f4f5] px-2 py-0.5 rounded border border-[#e4e4e7] text-[#52525b]">
+                  <span className="text-[11px] font-mono font-bold bg-white px-2 py-0.5 rounded border border-[#D5DEE9] text-[#526176]">
                     {selectedOrder.id}
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <span className="text-[11px] font-semibold text-[#067647] bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30">
                     ✓ {selectedOrder.status}
                   </span>
                 </div>
-                <h3 className="text-base font-bold text-[#080808] tracking-tight mt-1">
+                <h3 className="font-heading text-[19px] font-bold text-[#0F172A] tracking-tight mt-1">
                   Order Details
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="p-1.5 rounded-full hover:bg-[#f4f4f5] text-[#71717a] transition-colors"
+                className="p-1.5 rounded-full hover:bg-white text-[#526176] transition-colors"
               >
                 ✕
               </button>
             </div>
 
-            {/* Product Card */}
-            <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#fafafa] border border-[#e4e4e7]">
-              <img
-                src={selectedOrder.image}
-                alt={selectedOrder.productName}
-                className="w-16 h-16 rounded-lg object-cover bg-white border border-[#e4e4e7] shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <h4 className="text-sm font-bold text-[#080808] leading-snug">
-                  {selectedOrder.productName}
-                </h4>
-                <div className="flex items-center gap-2 text-xs font-mono text-[#71717a] mt-1">
-                  <span>SKU: {selectedOrder.sku}</span>
-                  <span>•</span>
-                  <span>Qty: 1 Unit</span>
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6 space-y-4 bg-white overflow-y-auto">
+              {/* Product Card */}
+              <div className="flex items-center gap-3.5 p-3.5 rounded-[12px] bg-[#F8FAFC] border border-[#D5DEE9]">
+                <img
+                  src={selectedOrder.image}
+                  alt={selectedOrder.productName}
+                  className="w-16 h-16 rounded-lg object-cover bg-white border border-[#D5DEE9] shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-['Inter'] text-[14px] font-semibold text-[#0F172A] leading-snug">
+                    {selectedOrder.productName}
+                  </h4>
+                  <div className="flex items-center gap-2 text-[11px] font-mono text-[#667085] mt-1">
+                    <span>SKU: {selectedOrder.sku}</span>
+                    <span>•</span>
+                    <span>Qty: 1 Unit</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Key Information Grid */}
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-lg bg-white border border-[#e4e4e7]">
-                <div className="text-[11px] text-[#71717a]">Customer Contact</div>
-                <div className="font-semibold text-[#080808] mt-0.5 font-mono">{selectedOrder.customerFull}</div>
+              {/* Key Information Grid */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-[10px] bg-white border border-[#D5DEE9]">
+                  <div className="text-[11px] text-[#667085]">Customer Contact</div>
+                  <div className="font-semibold text-[#0F172A] mt-0.5 font-mono text-[12px]">{selectedOrder.customerFull}</div>
+                </div>
+                <div className="p-3 rounded-[10px] bg-white border border-[#D5DEE9]">
+                  <div className="text-[11px] text-[#667085]">Sales Channel</div>
+                  <div className="font-semibold text-[#0F172A] mt-0.5 text-[12px]">{selectedOrder.channelName}</div>
+                </div>
+                <div className="p-3 rounded-[10px] bg-white border border-[#D5DEE9]">
+                  <div className="text-[11px] text-[#667085]">Payment Method</div>
+                  <div className="font-semibold text-[#0F172A] mt-0.5 text-[12px]">{selectedOrder.method}</div>
+                </div>
+                <div className="p-3 rounded-[10px] bg-white border border-[#D5DEE9]">
+                  <div className="text-[11px] text-[#667085]">Order Timestamp</div>
+                  <div className="font-semibold text-[#0F172A] mt-0.5 text-[12px]">{selectedOrder.timestamp}</div>
+                </div>
               </div>
-              <div className="p-3 rounded-lg bg-white border border-[#e4e4e7]">
-                <div className="text-[11px] text-[#71717a]">Sales Channel</div>
-                <div className="font-semibold text-[#080808] mt-0.5">{selectedOrder.channelName}</div>
-              </div>
-              <div className="p-3 rounded-lg bg-white border border-[#e4e4e7]">
-                <div className="text-[11px] text-[#71717a]">Payment Method</div>
-                <div className="font-semibold text-[#080808] mt-0.5">{selectedOrder.method}</div>
-              </div>
-              <div className="p-3 rounded-lg bg-white border border-[#e4e4e7]">
-                <div className="text-[11px] text-[#71717a]">Order Timestamp</div>
-                <div className="font-semibold text-[#080808] mt-0.5">{selectedOrder.timestamp}</div>
-              </div>
-            </div>
 
-            {/* Financial Breakdown */}
-            <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#cbd5e1] space-y-2 text-xs">
-              <div className="font-semibold text-[#080808] pb-1 border-b border-[#e2e8f0]">
-                Financial Summary
+              {/* Financial Breakdown */}
+              <div className="p-4 rounded-[12px] bg-[#F8FAFC] border border-[#D5DEE9] space-y-2 text-xs">
+                <div className="font-semibold text-[#0F172A] pb-1 border-b border-[#D5DEE9]">
+                  Financial Summary
+                </div>
+                <div className="flex justify-between text-[#526176]">
+                  <span>Customer Retail Total:</span>
+                  <span className="font-bold text-[#0F172A]">{formatPaise(selectedOrder.amountPaise)}</span>
+                </div>
+                <div className="flex justify-between text-[#526176]">
+                  <span>Wholesale Cost (COGS):</span>
+                  <span>{formatPaise(selectedOrder.costPaise)}</span>
+                </div>
+                <div className="flex justify-between text-[#067647] font-bold pt-1 border-t border-[#D5DEE9]">
+                  <span>Net Gross Margin ({selectedOrder.marginPercent}%):</span>
+                  <span>+{formatPaise(selectedOrder.amountPaise - selectedOrder.costPaise)}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-[#52525b]">
-                <span>Customer Retail Total:</span>
-                <span className="font-bold text-[#080808]">{formatPaise(selectedOrder.amountPaise)}</span>
-              </div>
-              <div className="flex justify-between text-[#52525b]">
-                <span>Wholesale Cost (COGS):</span>
-                <span>{formatPaise(selectedOrder.costPaise)}</span>
-              </div>
-              <div className="flex justify-between text-emerald-700 font-bold pt-1 border-t border-[#e2e8f0]">
-                <span>Net Gross Margin ({selectedOrder.marginPercent}%):</span>
-                <span>+{formatPaise(selectedOrder.amountPaise - selectedOrder.costPaise)}</span>
-              </div>
-            </div>
 
-            {/* Modal Actions */}
-            <div className="flex items-center gap-2 pt-2">
-              <Link
-                href="/orders"
-                onClick={() => setSelectedOrder(null)}
-                className="flex-1 py-2 px-3 text-xs font-semibold text-center bg-[#080808] text-white rounded-lg hover:bg-[#27272a] transition-colors"
-              >
-                Open Full Orders Ledger →
-              </Link>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="py-2 px-4 text-xs font-medium border border-[#d4d4d8] text-[#52525b] rounded-lg hover:bg-[#f4f4f5] transition-colors"
-              >
-                Close
-              </button>
+              {/* Modal Actions */}
+              <div className="flex items-center gap-2 pt-2">
+                <Link
+                  href="/orders"
+                  onClick={() => setSelectedOrder(null)}
+                  className="flex-1 py-2.5 px-3 text-[14px] font-semibold text-center bg-[#0F172A] text-white rounded-[8px] hover:bg-[#1E293B] transition-colors"
+                >
+                  Open Full Orders Ledger →
+                </Link>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="py-2.5 px-4 text-[14px] font-medium border border-[#D5DEE9] text-[#526176] rounded-[8px] hover:bg-[#F8FAFC] transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
 
           </div>
@@ -856,36 +881,32 @@ export default function OverviewPage() {
       {/* SECTION 2: Todays Strategies                                   */}
       {/* Autonomous growth actions prioritized for maximum profit today  */}
       {/* ============================================================== */}
-      {/* ============================================================== */}
-      {/* SECTION 2: Todays Strategies                                   */}
-      {/* Autonomous growth actions prioritized for maximum profit today  */}
-      {/* ============================================================== */}
-      <div className="bg-white border border-[#e4e4e7] rounded-xl shadow-xs overflow-hidden">
+      <div className="bg-white border border-[#D5DEE9] rounded-[16px] shadow-[0_2px_6px_rgba(15,23,42,0.04)] overflow-hidden">
         
-        {/* Distinct Professional Header with Subtle Contrast Tint & Clear Bottom Border */}
-        <div className="bg-[#fafafa] border-b border-[#e4e4e7] p-4 sm:px-6 sm:py-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Distinct Professional Header with #E8EEF5 background and #C4CFDC bottom border */}
+        <div className="bg-[#E8EEF5] border-b border-[#C4CFDC] p-4 sm:px-6 sm:py-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-[#18181b] text-white shadow-2xs shrink-0 flex items-center justify-center">
-              <Target className="w-4 h-4 text-emerald-400" />
+            <div className="p-2.5 rounded-lg bg-[#0F172A] text-white shadow-xs shrink-0 flex items-center justify-center">
+              <Target className="w-4 h-4 text-[#087F6B]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-bold text-[#09090b] tracking-tight">
+                <h2 className="font-heading text-[19px] font-bold text-[#0F172A] tracking-tight">
                   Todays Strategies
                 </h2>
-                <span className="text-[10px] font-mono font-bold text-[#52525b] bg-white px-2 py-0.5 rounded border border-[#e4e4e7] uppercase tracking-wider shadow-2xs">
+                <span className="text-[11px] font-mono font-bold text-[#526176] bg-white px-2 py-0.5 rounded border border-[#D5DEE9] uppercase tracking-wider shadow-xs">
                   AUTONOMOUS EXECUTION
                 </span>
               </div>
-              <p className="text-xs text-[#71717a] mt-0.5">
+              <p className="font-['Inter'] text-[14px] text-[#526176] mt-0.5">
                 Autonomous Growth Intelligence: 3 high-impact commercial levers prioritized for maximum profit today.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="text-[11px] font-mono text-[#52525b] bg-white px-2.5 py-1 rounded-md border border-[#e4e4e7] font-semibold flex items-center gap-1.5 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+            <span className="text-[11px] font-mono text-[#526176] bg-white px-2.5 py-1 rounded-md border border-[#D5DEE9] font-semibold flex items-center gap-1.5 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#087F6B]" />
               <span>3 Strategies Active</span>
             </span>
           </div>
@@ -893,35 +914,35 @@ export default function OverviewPage() {
 
         {/* Section Body: 3 Actionable Strategies Cards */}
         <div className="p-5 sm:p-6 bg-white">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4.5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             
             {/* Strategy 1: Price Optimization */}
-            <div className="p-4 sm:p-5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] hover:shadow-xs transition-all space-y-3.5 flex flex-col justify-between group">
+            <div className="p-4 sm:p-5 rounded-[14px] bg-white border border-[#D5DEE9] hover:border-[#0F172A] shadow-[0_2px_6px_rgba(15,23,42,0.04)] transition-all space-y-3.5 flex flex-col justify-between group">
               <div className="space-y-2.5">
                 {/* Card Top Row */}
-                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#e4e4e7]">
-                  <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 uppercase tracking-wider">
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#D5DEE9]">
+                  <span className="text-[11px] font-mono font-bold text-[#067647] bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30 uppercase tracking-wider">
                     PRICE OPTIMIZATION
                   </span>
-                  <span className="text-xs font-bold text-emerald-700 font-mono bg-emerald-50/80 px-2 py-0.5 rounded border border-emerald-200">
+                  <span className="text-[12px] font-bold text-[#067647] font-mono bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30">
                     +₹42,000 / mo
                   </span>
                 </div>
 
                 {/* Card Headline */}
-                <h3 className="text-xs font-bold text-[#09090b] leading-snug group-hover:text-[#18181b] transition-colors">
+                <h3 className="font-['Inter'] text-[15px] font-bold text-[#0F172A] leading-snug group-hover:text-[#087F6B] transition-colors">
                   Lift Classic White Oxford Cotton Shirt Price to ₹2,099
                 </h3>
 
                 {/* Analytical Micro-Metric Strip */}
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-[#52525b]">
-                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">97.4% Elasticity</span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">Zero Stockout Risk</span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7] text-emerald-700 font-semibold">+₹200/unit</span>
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-[#526176]">
+                  <span className="bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9]">97.4% Elasticity</span>
+                  <span className="bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9]">Zero Stockout Risk</span>
+                  <span className="bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30 text-[#067647] font-semibold">+₹200/unit</span>
                 </div>
 
                 {/* Rationale Description */}
-                <p className="text-[11px] text-[#52525b] leading-relaxed">
+                <p className="font-['Inter'] text-[14px] font-normal text-[#526176] leading-relaxed">
                   Demand elasticity analysis shows 97.4% conversion retention at ₹2,099 with zero stockouts. Delivers an additional +₹200 gross margin per unit across WhatsApp Direct and Amazon.
                 </p>
               </div>
@@ -930,40 +951,40 @@ export default function OverviewPage() {
               <button
                 type="button"
                 onClick={() => heroProduct && handleApplyPriceRecommendation(heroProduct.id, 209900)}
-                className="w-full py-2.5 px-3 bg-[#18181b] hover:bg-[#27272a] text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer group-hover:shadow-xs"
+                className="w-full py-2.5 px-3 bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-[8px] font-['Inter'] font-semibold text-[14px] flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
               >
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <TrendingUp className="w-3.5 h-3.5 text-[#087F6B]" />
                 <span>Apply Price Update (₹2,099)</span>
               </button>
             </div>
 
             {/* Strategy 2: Direct Channel Surge */}
-            <div className="p-4 sm:p-5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] hover:shadow-xs transition-all space-y-3.5 flex flex-col justify-between group">
+            <div className="p-4 sm:p-5 rounded-[14px] bg-white border border-[#D5DEE9] hover:border-[#0F172A] shadow-[0_2px_6px_rgba(15,23,42,0.04)] transition-all space-y-3.5 flex flex-col justify-between group">
               <div className="space-y-2.5">
                 {/* Card Top Row */}
-                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#e4e4e7]">
-                  <span className="text-[10px] font-mono font-bold text-[#52525b] bg-white px-2 py-0.5 rounded border border-[#e4e4e7] uppercase tracking-wider">
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#D5DEE9]">
+                  <span className="text-[11px] font-mono font-bold text-[#526176] bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9] uppercase tracking-wider">
                     DIRECT CHANNEL SURGE
                   </span>
-                  <span className="text-xs font-bold text-[#09090b] font-mono bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">
+                  <span className="text-[12px] font-bold text-[#0F172A] font-mono bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9]">
                     18 Sales Ready
                   </span>
                 </div>
 
                 {/* Card Headline */}
-                <h3 className="text-xs font-bold text-[#09090b] leading-snug group-hover:text-[#18181b] transition-colors">
+                <h3 className="font-['Inter'] text-[15px] font-bold text-[#0F172A] leading-snug group-hover:text-[#087F6B] transition-colors">
                   Close 18 Pending WhatsApp Chats with 5% Festive Style Incentive
                 </h3>
 
                 {/* Analytical Micro-Metric Strip */}
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-[#52525b]">
-                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">64.2% Net Margin</span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">Zero 15-22% Comm.</span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7] text-emerald-700 font-semibold">UPI Instant</span>
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-[#526176]">
+                  <span className="bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30 text-[#067647] font-semibold">64.2% Net Margin</span>
+                  <span className="bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9]">Zero 15-22% Comm.</span>
+                  <span className="bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9] text-[#0F172A] font-semibold">UPI Instant</span>
                 </div>
 
                 {/* Rationale Description */}
-                <p className="text-[11px] text-[#52525b] leading-relaxed">
+                <p className="font-['Inter'] text-[14px] font-normal text-[#526176] leading-relaxed">
                   High buyer purchase intent in WhatsApp chat queue for Oxford Shirts & Chinos. Direct UPI routing avoids 15-22% marketplace commissions, locking in 64.2% net margin.
                 </p>
               </div>
@@ -971,40 +992,40 @@ export default function OverviewPage() {
               {/* Action Button */}
               <Link
                 href="/whatsapp"
-                className="w-full py-2.5 px-3 bg-[#18181b] hover:bg-[#27272a] text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs text-center group-hover:shadow-xs"
+                className="w-full py-2.5 px-3 bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-[8px] font-['Inter'] font-semibold text-[14px] flex items-center justify-center gap-1.5 transition-colors shadow-xs text-center"
               >
-                <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                <MessageSquare className="w-3.5 h-3.5 text-[#087F6B]" />
                 <span>Open Sales Agent & Dispatch Deals</span>
               </Link>
             </div>
 
             {/* Strategy 3: Executive Duo Pairing */}
-            <div className="p-4 sm:p-5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] hover:shadow-xs transition-all space-y-3.5 flex flex-col justify-between group">
+            <div className="p-4 sm:p-5 rounded-[14px] bg-white border border-[#D5DEE9] hover:border-[#0F172A] shadow-[0_2px_6px_rgba(15,23,42,0.04)] transition-all space-y-3.5 flex flex-col justify-between group">
               <div className="space-y-2.5">
                 {/* Card Top Row */}
-                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#e4e4e7]">
-                  <span className="text-[10px] font-mono font-bold text-[#52525b] bg-white px-2 py-0.5 rounded border border-[#e4e4e7] uppercase tracking-wider">
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#D5DEE9]">
+                  <span className="text-[11px] font-mono font-bold text-[#526176] bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9] uppercase tracking-wider">
                     WORKING CAPITAL PAIRING
                   </span>
-                  <span className="text-xs font-bold text-[#09090b] font-mono bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">
+                  <span className="text-[12px] font-bold text-[#0F172A] font-mono bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9]">
                     +₹38,000 Volume
                   </span>
                 </div>
 
                 {/* Card Headline */}
-                <h3 className="text-xs font-bold text-[#09090b] leading-snug group-hover:text-[#18181b] transition-colors">
+                <h3 className="font-['Inter'] text-[15px] font-bold text-[#0F172A] leading-snug group-hover:text-[#087F6B] transition-colors">
                   Pair Olive Linen Shirt + Khaki Chinos as "Executive Summer Duo"
                 </h3>
 
                 {/* Analytical Micro-Metric Strip */}
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-[#52525b]">
-                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">2.4x Cash Speed</span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7]">61.5% Blended Margin</span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-[#e4e4e7] text-emerald-700 font-semibold">Bundle ₹4,199</span>
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-[#526176]">
+                  <span className="bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9]">2.4x Cash Speed</span>
+                  <span className="bg-[#E8F7F1] px-2 py-0.5 rounded border border-[#067647]/30 text-[#067647] font-semibold">61.5% Blended Margin</span>
+                  <span className="bg-[#F8FAFC] px-2 py-0.5 rounded border border-[#D5DEE9] text-[#0F172A] font-semibold">Bundle ₹4,199</span>
                 </div>
 
                 {/* Rationale Description */}
-                <p className="text-[11px] text-[#52525b] leading-relaxed">
+                <p className="font-['Inter'] text-[14px] font-normal text-[#526176] leading-relaxed">
                   Bundle the Linen Casual Shirt (₹2,499) with Khaki Chinos (₹2,299) at ₹4,199. Accelerates cash conversion by 2.4x while maintaining a healthy 61.5% blended gross margin.
                 </p>
               </div>
@@ -1012,9 +1033,9 @@ export default function OverviewPage() {
               {/* Action Button */}
               <Link
                 href="/campaigns"
-                className="w-full py-2.5 px-3 border border-[#d4d4d8] bg-white hover:bg-[#f4f4f5] text-[#18181b] rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs text-center group-hover:border-[#18181b]"
+                className="w-full py-2.5 px-3 bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-[8px] font-['Inter'] font-semibold text-[14px] flex items-center justify-center gap-1.5 transition-colors shadow-xs text-center"
               >
-                <Package className="w-3.5 h-3.5 text-[#52525b]" />
+                <Package className="w-3.5 h-3.5 text-[#526176]" />
                 <span>Create Executive Bundle Deal</span>
               </Link>
             </div>
@@ -1027,12 +1048,12 @@ export default function OverviewPage() {
       {/* SECTION 3: Current Catalog                                     */}
       {/* Tap any product card to view full description & marketplaces   */}
       {/* ============================================================== */}
-      <div className="bg-white border border-[#e4e4e7] rounded-xl p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-white border border-[#D5DEE9] rounded-[16px] shadow-[0_2px_6px_rgba(15,23,42,0.04)] overflow-hidden">
 
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#f4f4f5]">
+        {/* Section Header with #E8EEF5 background and #C4CFDC bottom border */}
+        <div className="bg-[#E8EEF5] border-b border-[#C4CFDC] p-4 sm:px-6 sm:py-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-2xs border border-[#e4e4e7] shrink-0 bg-[#fafafa] flex items-center justify-center">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-xs border border-[#D5DEE9] shrink-0 bg-white flex items-center justify-center">
               <img
                 src="/catalog_banner.jpg"
                 alt="Current Catalog"
@@ -1041,14 +1062,14 @@ export default function OverviewPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-bold text-[#09090b] tracking-tight">
+                <h2 className="font-heading text-[19px] font-bold text-[#0F172A] tracking-tight">
                   Current Catalog
                 </h2>
-                <span className="text-[10px] font-mono font-semibold text-[#18181b] bg-[#f4f4f5] px-2 py-0.5 rounded border border-[#e4e4e7]">
+                <span className="text-[11px] font-mono font-semibold text-[#0F172A] bg-white px-2 py-0.5 rounded border border-[#D5DEE9] shadow-xs">
                   LIVE CATALOG
                 </span>
               </div>
-              <p className="text-xs text-[#71717a] mt-0.5">
+              <p className="font-['Inter'] text-[14px] text-[#526176] mt-0.5">
                 Active inventory items with retail selling prices, wholesale COGS, and gross margin floors. Tap any product to view full description, marketplace placements, and tailored recommendations.
               </p>
             </div>
@@ -1057,162 +1078,158 @@ export default function OverviewPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/products"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#18181b] text-white rounded-lg hover:bg-[#27272a] transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-['Inter'] font-semibold bg-[#0F172A] text-white rounded-[8px] hover:bg-[#1E293B] transition-colors shadow-xs"
             >
               <span>Manage Products</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
         {/* Catalog Table / Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.slice(0, 6).map((product) => {
-            const imageUrl = product.attributes?.refined_photo_url ||
-              (product.name?.toLowerCase().includes('oxford') || product.name?.toLowerCase().includes('white') ? '/clothing/white_oxford.jpg' :
-               product.name?.toLowerCase().includes('navy') ? '/clothing/navy_shirt.jpg' :
-               product.name?.toLowerCase().includes('linen') || product.name?.toLowerCase().includes('olive') ? '/clothing/linen_shirt.jpg' :
-               product.name?.toLowerCase().includes('khaki') || product.name?.toLowerCase().includes('chino') ? '/clothing/khaki_chino.jpg' :
-               product.name?.toLowerCase().includes('grey') || product.name?.toLowerCase().includes('charcoal') ? '/clothing/grey_trouser.jpg' :
-               '/clothing/black_trouser.jpg');
+        <div className="p-5 sm:p-6 bg-white">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
+            {products.slice(0, 6).map((product) => {
+              const imageUrl = product.attributes?.refined_photo_url ||
+                (product.name?.toLowerCase().includes('oxford') || product.name?.toLowerCase().includes('white') ? '/clothing/white_oxford.jpg' :
+                 product.name?.toLowerCase().includes('navy') ? '/clothing/navy_shirt.jpg' :
+                 product.name?.toLowerCase().includes('linen') || product.name?.toLowerCase().includes('olive') ? '/clothing/linen_shirt.jpg' :
+                 product.name?.toLowerCase().includes('khaki') || product.name?.toLowerCase().includes('chino') ? '/clothing/khaki_chino.jpg' :
+                 product.name?.toLowerCase().includes('grey') || product.name?.toLowerCase().includes('charcoal') ? '/clothing/grey_trouser.jpg' :
+                 '/clothing/black_trouser.jpg');
 
-            const marginPct = product.price_paise > 0
-              ? (((product.price_paise - product.cost_paise) / product.price_paise) * 100).toFixed(1)
-              : '0.0';
+              const marginPct = product.price_paise > 0
+                ? (((product.price_paise - product.cost_paise) / product.price_paise) * 100).toFixed(1)
+                : '0.0';
 
-            return (
-              <div
-                key={product.id}
-                onClick={() => setSelectedProductDetail(product)}
-                className="p-3.5 rounded-xl bg-[#fafafa] border border-[#e4e4e7] hover:border-[#18181b] hover:shadow-xs transition-all space-y-3 flex flex-col justify-between cursor-pointer group"
-                title="Tap to view complete description, marketplace placements, and recommendations"
-              >
-                <div className="space-y-2.5">
-                  {/* Photo & SKU Tag */}
-                  <div className="relative w-full h-36 rounded-lg overflow-hidden bg-white border border-[#e4e4e7] flex items-center justify-center p-2 group-hover:border-[#18181b] transition-colors">
-                    <img
-                      src={imageUrl}
-                      alt={product.name}
-                      className="max-h-full max-w-full object-contain"
-                    />
-                    <div className="absolute bottom-2 right-2 bg-white/95 text-[#09090b] text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#e4e4e7]">
-                      {product.sku}
+              return (
+                <div
+                  key={product.id}
+                  onClick={() => setSelectedProductDetail(product)}
+                  className="p-3.5 rounded-[12px] bg-white border border-[#D5DEE9] hover:border-[#0F172A] shadow-[0_2px_6px_rgba(15,23,42,0.04)] transition-all space-y-3 flex flex-col justify-between cursor-pointer group"
+                  title="Tap to view complete description, marketplace placements, and recommendations"
+                >
+                  <div className="space-y-2.5">
+                    {/* Photo & SKU Tag */}
+                    <div className="relative w-full h-36 rounded-[10px] overflow-hidden bg-[#F8FAFC] border border-[#D5DEE9] flex items-center justify-center p-2 group-hover:border-[#0F172A] transition-colors">
+                      <img
+                        src={imageUrl}
+                        alt={product.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                      <div className="absolute bottom-2 right-2 bg-white text-[#0F172A] text-[11px] font-mono px-2 py-0.5 rounded border border-[#D5DEE9] shadow-xs">
+                        {product.sku}
+                      </div>
+                    </div>
+
+                    {/* Title & Category */}
+                    <div>
+                      <h3 className="font-['Inter'] text-[14px] font-semibold text-[#0F172A] line-clamp-1 group-hover:text-[#087F6B] transition-colors">
+                        {product.name}
+                      </h3>
+                      <div className="text-[11px] text-[#667085] font-mono mt-0.5 uppercase">
+                        Category: {product.category}
+                      </div>
+                    </div>
+
+                    {/* Price & COGS Economics */}
+                    <div className="p-2.5 bg-[#F8FAFC] rounded-[8px] border border-[#D5DEE9] space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[#526176] font-['Inter'] text-[13px]">Selling Price:</span>
+                        <strong className="text-[#0F172A] tabular-nums font-['Inter'] text-[16px] font-bold">
+                          {formatPaise(product.price_paise)}
+                        </strong>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[#526176] font-['Inter'] text-[13px]">Wholesale COGS:</span>
+                        <span className="text-[#667085] tabular-nums font-mono text-[12px]">
+                          {formatPaise(product.cost_paise)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-[#D5DEE9]">
+                        <span className="text-[#526176] font-['Inter'] text-[13px]">Gross Margin:</span>
+                        <span className="text-[#067647] font-bold font-mono text-[13px]">
+                          {marginPct}%
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Title & Category */}
-                  <div>
-                    <h3 className="font-bold text-xs text-[#09090b] line-clamp-1 group-hover:text-[#18181b] transition-colors">
-                      {product.name}
-                    </h3>
-                    <div className="text-[10px] text-[#71717a] font-mono mt-0.5 uppercase">
-                      Category: {product.category}
-                    </div>
-                  </div>
-
-                  {/* Price & COGS Economics */}
-                  <div className="p-2.5 bg-white rounded-lg border border-[#e4e4e7] space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-[#71717a]">Selling Price:</span>
-                      <strong className="text-[#09090b] tabular-nums font-bold">
-                        {formatPaise(product.price_paise)}
-                      </strong>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-[#71717a]">Wholesale COGS:</span>
-                      <span className="text-[#71717a] tabular-nums font-mono">
-                        {formatPaise(product.cost_paise)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs pt-1 border-t border-[#f4f4f5]">
-                      <span className="text-[#71717a]">Gross Margin:</span>
-                      <span className="text-emerald-700 font-bold font-mono">
-                        {marginPct}%
-                      </span>
-                    </div>
+                  {/* Stock Level & Details Link */}
+                  <div className="pt-2 flex items-center justify-between text-[12px] border-t border-[#D5DEE9]">
+                    <span className="font-mono text-[#667085] text-[11px]">
+                      Stock: <strong className="text-[#0F172A] font-semibold">{product.inventory_quantity} units</strong>
+                    </span>
+                    <span className="text-[#0F172A] font-semibold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform font-['Inter']">
+                      <span>Details & Channels</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </span>
                   </div>
                 </div>
-
-                {/* Stock Level & Details Link */}
-                <div className="pt-2 flex items-center justify-between text-[11px] border-t border-[#f4f4f5]">
-                  <span className="font-mono text-[#71717a]">
-                    Stock: <strong className="text-[#09090b]">{product.inventory_quantity} units</strong>
-                  </span>
-                  <span className="text-[#18181b] font-semibold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                    <span>Details & Channels</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* ============================================================== */}
-      {/* SECTION 4: Stocks are near end in demand. */}
+      {/* SECTION 4: Stocks Near End in Demand                           */}
       {/* ============================================================== */}
-      <div className="bg-white border border-[#e4e4e7] rounded-xl p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-white border border-[#D5DEE9] rounded-[16px] shadow-[0_2px_6px_rgba(15,23,42,0.04)] overflow-hidden">
         
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#f4f4f5]">
+        {/* Section Header with #E8EEF5 background and #C4CFDC bottom border */}
+        <div className="bg-[#E8EEF5] border-b border-[#C4CFDC] p-4 sm:px-6 sm:py-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-[#f4f4f5] text-[#18181b]">
-                <AlertTriangle className="w-4 h-4" />
+              <span className="p-2 rounded-lg bg-[#0F172A] text-white shadow-xs">
+                <AlertTriangle className="w-4 h-4 text-[#FFF4DB]" />
               </span>
-              <h2 className="text-lg sm:text-xl font-bold text-[#09090b] tracking-tight">
+              <h2 className="font-heading text-[19px] font-bold text-[#0F172A] tracking-tight">
                 Stocks Near End in Demand
               </h2>
             </div>
-            <p className="text-xs text-[#71717a] mt-0.5">
+            <p className="font-['Inter'] text-[14px] text-[#526176] mt-0.5">
               High-demand products with low or depleted stock. Reorder immediately to avoid lost revenue.
             </p>
           </div>
 
-          <span className="text-[11px] font-mono text-[#52525b] bg-[#f4f4f5] px-2.5 py-1 rounded-md border border-[#e4e4e7] font-semibold flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+          <span className="text-[11px] font-mono text-[#92400E] bg-[#FFF4DB] px-2.5 py-1 rounded-md border border-[#92400E]/30 font-semibold flex items-center gap-1.5 shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#92400E]" />
             <span>3 Shortage Risks</span>
           </span>
         </div>
 
         {/* Shortage Cards */}
-        <div className="space-y-3">
+        <div className="p-5 sm:p-6 bg-white space-y-3.5">
           {stocksNearEnd.map((item) => (
             <div
               key={item.sku}
-              className="p-4 rounded-xl border border-[#e4e4e7] bg-[#fafafa] hover:border-[#18181b] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs"
+              className="p-4 rounded-[12px] border border-[#D5DEE9] bg-white hover:border-[#0F172A] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_2px_6px_rgba(15,23,42,0.04)]"
             >
               <div className="space-y-1.5 max-w-xl">
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
-                      item.status === 'CRITICAL' || item.status === 'OUT_OF_STOCK'
-                        ? 'bg-rose-50 text-rose-700 border-rose-200'
-                        : 'bg-[#f4f4f5] text-[#52525b] border-[#e4e4e7]'
-                    }`}
-                  >
+                  <span className="text-[11px] font-['Inter'] font-semibold px-2 py-0.5 rounded border uppercase tracking-wider bg-[#FFF4DB] text-[#92400E] border-[#92400E]/30">
                     {item.statusLabel}
                   </span>
-                  <span className="text-xs font-mono text-[#71717a]">
+                  <span className="text-[11px] font-mono text-[#667085]">
                     SKU: {item.sku}
                   </span>
                 </div>
 
-                <div className="text-sm font-bold text-[#09090b]">
+                <div className="font-['Inter'] text-[14px] font-semibold text-[#0F172A]">
                   {item.name}
                 </div>
 
-                <div className="text-xs text-[#52525b] flex flex-wrap items-center gap-3">
+                <div className="font-['Inter'] text-[14px] text-[#526176] flex flex-wrap items-center gap-3">
                   <span>
-                    Current Stock: <strong className="text-[#09090b]">{item.currentStock} units</strong>
+                    Current Stock: <strong className="text-[#0F172A]">{item.currentStock} units</strong>
                   </span>
                   <span>•</span>
                   <span>
-                    Demand Velocity: <strong className="text-[#09090b]">{item.demandRate}</strong>
+                    Demand Velocity: <strong className="text-[#0F172A]">{item.demandRate}</strong>
                   </span>
                   <span>•</span>
-                  <span className="text-rose-700 font-semibold font-mono">
+                  <span className="text-[#92400E] font-semibold font-mono text-[13px]">
                     Est. Lost Revenue: ~₹{(item.lostGmvPerDay).toLocaleString('en-IN')}/day
                   </span>
                 </div>
@@ -1222,7 +1239,7 @@ export default function OverviewPage() {
               <button
                 type="button"
                 onClick={() => handleReorder(item.id, item.name, item.recommendedReorder)}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs shrink-0 bg-[#18181b] hover:bg-[#27272a] text-white cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-[8px] font-['Inter'] font-semibold text-[14px] flex items-center justify-center gap-2 transition-all shadow-xs shrink-0 bg-[#0F172A] hover:bg-[#1E293B] text-white cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Reorder +{item.recommendedReorder} Units from Supplier</span>

@@ -4,6 +4,8 @@
 ### *Autonomous Commercial Intelligence, Multi-Channel Economics & Conversational WhatsApp Copilot for Independent Indian Merchants*
 
 [![Razorpay AI Buildathon 2026](https://img.shields.io/badge/Razorpay_AI_Buildathon_2026-Track_01:_Agentic_Commerce-0C2340?style=for-the-badge&logo=razorpay&logoColor=3395FF)](https://razorpay.com)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live_Production-black?style=for-the-badge&logo=vercel&logoColor=white)](https://merchant-policy-agent.vercel.app)
+[![Render Backend](https://img.shields.io/badge/Render-FastAPI_Cloud-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://render.com)
 [![Tests Passing](https://img.shields.io/badge/Tests-962%20Passed%20(100%25)-00C853?style=for-the-badge&logo=pytest&logoColor=white)](docs/implementation-status.md)
 [![Deterministic Safety](https://img.shields.io/badge/Safety_Gate-18%25_Margin_Floor_Enforced-00E676?style=for-the-badge&logo=shield&logoColor=white)](docs/economics-model.md)
 [![MCP 2026 Compliant](https://img.shields.io/badge/MCP-2026_Compliant-blueviolet?style=for-the-badge&logo=anthropic&logoColor=white)](docs/mcp-specification.md)
@@ -235,6 +237,51 @@ npm install
 node index.js
 # Terminal will display authentication QR code; session persists automatically in ./.wwebjs_auth
 ```
+
+---
+
+## 🚀 Cloud Deployment (Vercel & Render)
+
+The Vastram Commerce architecture is designed for turnkey cloud deployment with zero-friction continuous integration:
+
+```text
+┌──────────────────────────────────────────────┐       ┌──────────────────────────────────────────────┐
+│        Frontend: Next.js 16 on VERCEL        │       │       Backend: FastAPI on RENDER (Cloud)     │
+│  🔗 https://merchant-policy-agent.vercel.app │ ◄───► │  🔗 https://merchant-policy-agent.onrender.com│
+└──────────────────────────────────────────────┘       └──────────────────────┬───────────────────────┘
+                                                                              │
+                                                                   ┌──────────┴──────────┐
+                                                                   │  Razorpay Webhooks  │
+                                                                   │  WhatsApp Connector │
+                                                                   └─────────────────────┘
+```
+
+### 1. Frontend Deployment on Vercel (Live)
+- **Status**: ✅ **Live in Production** at [`merchant-policy-agent.vercel.app`](https://merchant-policy-agent.vercel.app)
+- **Framework**: Next.js 16 (`apps/web`)
+- **Environment Variable**:
+  ```ini
+  NEXT_PUBLIC_API_URL=https://merchant-policy-agent-api.onrender.com
+  ```
+
+### 2. Backend Deployment on Render (FastAPI)
+The repository includes a native [`render.yaml`](render.yaml) Infrastructure-as-Code Blueprint for 1-click deployment:
+
+1. **Log in to [Render Dashboard](https://dashboard.render.com/)**.
+2. Click **New +** ➔ **Blueprint** (or **Web Service**).
+3. Connect the repository: `https://github.com/dhanusharer/merchant-policy-agent`.
+4. Render automatically detects `render.yaml` and sets up:
+   - **Environment**: Python 3.11.9
+   - **Build Command**:
+     ```bash
+     pip install -r requirements.txt && pip install -e . && python scripts/seed_commerce_data.py && python scripts/update_vastram_clothing.py && python scripts/enrich_vastram_products.py && python scripts/seed_vastram_orders.py
+     ```
+   - **Start Command**:
+     ```bash
+     uvicorn apps.api.main:app --host 0.0.0.0 --port $PORT
+     ```
+5. Click **Apply** / **Deploy**. Once built, Render provides your public URL (e.g., `https://merchant-policy-agent-api.onrender.com`).
+6. Update `NEXT_PUBLIC_API_URL` in your Vercel Project Settings with your Render URL, and your production dashboard is fully connected!
 
 ---
 

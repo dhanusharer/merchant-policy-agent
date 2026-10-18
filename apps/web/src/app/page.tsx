@@ -287,21 +287,21 @@ export default function OverviewPage() {
         {/* Content Container (Top row has 0% backdrop tint, completely clear) */}
         <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-6 md:p-8">
           
-          {/* Top Row: Left Logo | Center Ask AI Agent | Right "V" Merchant Circle */}
+          {/* Top Row: Left Logo | Center Ask AI Agent (desktop) | Right "V" Merchant Circle */}
           <div className="relative flex items-center justify-between w-full">
             {/* Left: Vyapar Mitra Brand Logo */}
-            <div className="flex items-center gap-3 shrink-0 z-10">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 z-10">
               <Link href="/" className="inline-flex items-center transition-transform hover:scale-[1.01]">
                 <img
                   src="/vyapar_mitra_logo.png"
                   alt="Vyapar Mitra"
-                  className="h-11 sm:h-13 md:h-14 w-auto object-contain"
+                  className="h-8 sm:h-13 md:h-14 w-auto object-contain"
                 />
               </Link>
             </div>
 
-            {/* Middle: Ask AI Agent Form (Centered at top middle of the banner) */}
-            <div className="absolute left-1/2 -translate-x-1/2 w-56 sm:w-72 md:w-80 lg:w-96 max-w-[50%] z-10">
+            {/* Middle: Ask AI Agent Form (Centered at top middle of the banner on desktop, hidden on mobile to prevent overlapping) */}
+            <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 w-64 md:w-80 lg:w-96 max-w-[45%] z-10">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -320,7 +320,7 @@ export default function OverviewPage() {
                 <button
                   type="submit"
                   disabled={isAnswering}
-                  className="absolute right-1 px-2.5 py-1.5 bg-[#18181b] hover:bg-[#27272a] text-white text-[11px] font-semibold rounded-md transition-colors flex items-center gap-1 shadow-2xs"
+                  className="absolute right-1 px-2.5 py-1.5 bg-[#18181b] hover:bg-[#27272a] text-white text-[11px] font-semibold rounded-md transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
                 >
                   <span>Ask</span>
                   <Send className="w-3 h-3" />
@@ -328,11 +328,11 @@ export default function OverviewPage() {
               </form>
             </div>
 
-            {/* Right: "V" Merchant Circle Avatar (Separated on the right side, ~2 inch diameter ~56px) */}
+            {/* Right: "V" Merchant Circle Avatar (Separated on the right side) */}
             <div className="shrink-0 z-10 flex items-center justify-end">
               <div
                 title={`Merchant: ${merchantDisplayName}`}
-                className="w-12 h-12 sm:w-14 sm:h-14 md:w-14 md:h-14 rounded-full bg-white text-[#0F172A] border-2 border-white/90 shadow-md flex items-center justify-center font-heading font-extrabold text-xl sm:text-2xl tracking-wide select-none transition-transform hover:scale-105"
+                className="w-10 h-10 sm:w-14 sm:h-14 md:w-14 md:h-14 rounded-full bg-white text-[#0F172A] border-2 border-white/90 shadow-md flex items-center justify-center font-heading font-extrabold text-lg sm:text-2xl tracking-wide select-none transition-transform hover:scale-105"
               >
                 {merchantInitial}
               </div>
@@ -352,6 +352,34 @@ export default function OverviewPage() {
           </h1>
 
         </div>
+      </div>
+
+      {/* Mobile Dedicated Clean Ask AI Agent Bar (Below banner for easy thumb access, zero overlap) */}
+      <div className="sm:hidden w-full px-3 pt-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAskAgent();
+          }}
+          className="relative flex items-center shadow-xs"
+        >
+          <Bot className="w-4 h-4 text-[#71717a] absolute left-3 pointer-events-none" />
+          <input
+            type="text"
+            value={agentQuery}
+            onChange={(e) => setAgentQuery(e.target.value)}
+            placeholder="Ask Vyapar Mitra Agent..."
+            className="w-full text-xs font-medium pl-9 pr-16 py-2.5 bg-white text-[#080808] border border-[#d4d4d8] rounded-xl shadow-xs placeholder:text-[#71717a] focus:border-[#0F172A] focus:outline-none"
+          />
+          <button
+            type="submit"
+            disabled={isAnswering}
+            className="absolute right-1.5 px-3 py-1.5 bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <span>Ask</span>
+            <Send className="w-3 h-3" />
+          </button>
+        </form>
       </div>
 
       {/* Main Content Body - Full width with minimal edge gaps */}

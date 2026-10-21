@@ -424,11 +424,3 @@ BACKEND_URL=http://localhost:8000/api/v1/whatsapp/connector-inbound
 POLICY_HMAC_SECRET=super_secret_hmac_signing_key_32_bytes_min
 TOKEN_EXPIRATION_SECONDS=900
 ```
-
----
-
-## ⚖️ License & Hackathon Alignment
-
-Developed for the **Razorpay AI Buildathon 2026 — Track 01: Agentic Commerce & Autonomous Commerce**.
-
-Released under the **MIT License**. Copyright © 2026 Vastram Commerce Contributors.
